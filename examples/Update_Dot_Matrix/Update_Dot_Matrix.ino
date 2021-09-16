@@ -3,12 +3,12 @@
 MatesController mates = MatesController(Serial);
 
 char myBuffer[25] = "DotMatrxVal1 XXXVal2 XXX"; // 24 characters + null terminator (8 * 3 + 1 = 25)
-const char * val1ptr = myBuffer + 13;
-const char * val2ptr = myBuffer + 21;
+char * val1ptr = myBuffer + 13;
+char * val2ptr = myBuffer + 21;
 
 int errLedStatus = LOW;
 void ErrorLed_Toggle() {
-  errLedStatus != errLedStatus;
+  errLedStatus = ~errLedStatus;
   digitalWrite(LED_BUILTIN, errLedStatus);
 }
 

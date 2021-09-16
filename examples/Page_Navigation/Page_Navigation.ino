@@ -52,9 +52,9 @@ void Day_and_Time_Animation(void) {
       // mates.setWidgetValue(MATES_LED_DIGITS, 0, hrs);
       // mates.setWidgetValue(MATES_LED_DIGITS, 1, min);
       // mates.setWidgetValue(MATES_LED_DIGITS, 2, sec);
-      mates.setLedDigitsShortValue(0, hrs);
-      mates.setLedDigitsShortValue(1, min);
-      mates.setLedDigitsShortValue(2, sec);
+      mates.setLedDigitsValue(0, hrs);
+      mates.setLedDigitsValue(1, min);
+      mates.setLedDigitsValue(2, sec);
       if (lastDay != day) {
         mates.updateTextArea(0, daysOfWeek[day]);
         lastDay = day; // prevents writing the same text to TextArea
@@ -300,7 +300,7 @@ void (* animations[])(void) = {
 
 int errLedStatus = LOW;
 void ErrorLed_Toggle() {
-  errLedStatus != errLedStatus;
+  errLedStatus = ~errLedStatus;
   digitalWrite(LED_BUILTIN, errLedStatus);
 }
 

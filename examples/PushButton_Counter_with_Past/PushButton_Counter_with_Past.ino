@@ -13,7 +13,7 @@ unsigned long lastDebounceTime;
 
 int errLedStatus = LOW;
 void ErrorLed_Toggle() {
-  errLedStatus != errLedStatus;
+  errLedStatus = ~errLedStatus;
   digitalWrite(LED_BUILTIN, errLedStatus);
 }
 

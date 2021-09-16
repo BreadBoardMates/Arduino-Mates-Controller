@@ -21,7 +21,7 @@
 #define __MATES_CONTROLLER_LIBRARY_VERSION__    "1.0.0"
 
 #define __MATES_STRING_BUFFER_SIZE__            50
-#define __MATES_BOOT_TIMEOUT__                  5000
+#define __MATES_BOOT_TIMEOUT__                  10000
 
 /*
  * RELEASE NOTES

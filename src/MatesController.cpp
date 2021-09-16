@@ -126,7 +126,7 @@ bool MatesController::reset(uint16_t waitPeriod) {
   matesReady = WaitForACK(waitPeriod);
 
   if (debugSerial != NULL) {
-    debugSerial->write(matesReady ? "Done after " : "Timed out after ");
+    debugSerial->write(matesReady ? "\nDone after " : "\nTimed out after ");
     debugSerial->print(millis() - startTime);
     debugSerial->write(" ms\n");
   }
@@ -420,7 +420,7 @@ bool MatesController::setPrintAreaColor(uint16_t index, int16_t rgb565) {
 
   bool res = false;
   if (matesReady) {
-    WriteCommand(MATES_CMD_CLR_PRINT_AREA);
+    WriteCommand(MATES_CMD_SET_PRINT_COLOR);
     WriteWord(index);
     WriteWord(rgb565);
     res = WaitForACK();
@@ -442,7 +442,10 @@ bool MatesController::setPrintAreaColor(uint16_t index, uint8_t r, uint8_t g, ui
 
 bool MatesController::appendToPrintArea(uint16_t index, const int8_t * buf, uint16_t len) {
   if (debugSerial != NULL) {
-    debugSerial->write("Append to PrintArea");
+    debugSerial->write("Append ");
+    debugSerial->print(len);
+    debugSerial->write(" bytes to PrintArea");
+    // debugSerial->write("Append to PrintArea");
     debugSerial->print(index);
     debugSerial->write("... ");
   }
@@ -468,8 +471,9 @@ bool MatesController::appendToPrintArea(uint16_t index, const char * format, ...
   va_list args;
   va_start(args, format);
   vsprintf(buf, format, args);
+  bool res = appendToPrintArea(index, (int8_t *)buf, strlen(buf));
   free(buf);
-  return appendToPrintArea(index, (int8_t *)buf, strlen(buf));
+  return res;
 }
 
 bool MatesController::appendToScope(uint16_t index, const int16_t * buf, int16_t len) {
@@ -522,8 +526,9 @@ bool MatesController::updateDotMatrix(uint16_t index, const char * format, ...) 
   va_list args;
   va_start(args, format);
   vsprintf(buf, format, args);
+  res = updateDotMatrix(index, (int8_t *)buf, strlen(buf));
   free(buf);
-  return updateDotMatrix(index, (int8_t *)buf, strlen(buf));
+  return res;
 }
 
 String MatesController::getVersion() {

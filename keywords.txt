@@ -6,126 +6,126 @@
 # Datatypes (KEYWORD1)
 ########################################
 
-MatesController                 KEYWORD1
+MatesController KEYWORD1
 
-MatesCommand                    KEYWORD1
-MatesWidget                     KEYWORD1
-MatesError                      KEYWORD1
+MatesCommand    KEYWORD1
+MatesWidget KEYWORD1
+MatesError  KEYWORD1
 
 ########################################
 # Methods and Functions (KEYWORD2)
 ########################################
 
-begin                           KEYWORD2
-reset                           KEYWORD2
-softReset                       KEYWORD2
-setBacklight                    KEYWORD2
-setPage                         KEYWORD2
-getPage                         KEYWORD2
-setWidgetValue                  KEYWORD2
-getWidgetValue                  KEYWORD2
-setWidgetValue                  KEYWORD2
-getWidgetValue                  KEYWORD2
-setLedDigitsValue               KEYWORD2
-setLedDigitsValue               KEYWORD2
-setLedDigitsValue               KEYWORD2
-setSpectrumValue                KEYWORD2
-setLedSpectrumValue             KEYWORD2
-setMediaSpectrumValue           KEYWORD2
-setWidgetParam                  KEYWORD2
-getWidgetParam                  KEYWORD2
-setWidgetParam                  KEYWORD2
-getWidgetParam                  KEYWORD2
-setBufferSize                   KEYWORD2
-clearTextArea                   KEYWORD2
-updateTextArea                  KEYWORD2
-clearPrintArea                  KEYWORD2
-setPrintAreaColor               KEYWORD2
-setPrintAreaColor               KEYWORD2
-appendToPrintArea               KEYWORD2
-appendToPrintArea               KEYWORD2
-appendToScope                   KEYWORD2
-updateDotMatrix                 KEYWORD2
-getVersion                      KEYWORD2
-getCompatibility                KEYWORD2
-printVersion                    KEYWORD2
-getError                        KEYWORD2
+begin   KEYWORD2
+reset   KEYWORD2
+softReset   KEYWORD2
+setBacklight    KEYWORD2
+setPage KEYWORD2
+getPage KEYWORD2
+setWidgetValue  KEYWORD2
+getWidgetValue  KEYWORD2
+setWidgetValue  KEYWORD2
+getWidgetValue  KEYWORD2
+setLedDigitsValue   KEYWORD2
+setLedDigitsValue   KEYWORD2
+setLedDigitsValue   KEYWORD2
+setSpectrumValue    KEYWORD2
+setLedSpectrumValue KEYWORD2
+setMediaSpectrumValue   KEYWORD2
+setWidgetParam  KEYWORD2
+getWidgetParam  KEYWORD2
+setWidgetParam  KEYWORD2
+getWidgetParam  KEYWORD2
+setBufferSize   KEYWORD2
+clearTextArea   KEYWORD2
+updateTextArea  KEYWORD2
+clearPrintArea  KEYWORD2
+setPrintAreaColor   KEYWORD2
+setPrintAreaColor   KEYWORD2
+appendToPrintArea   KEYWORD2
+appendToPrintArea   KEYWORD2
+appendToScope   KEYWORD2
+updateDotMatrix KEYWORD2
+getVersion  KEYWORD2
+getCompatibility    KEYWORD2
+printVersion    KEYWORD2
+getError    KEYWORD2
 
 ########################################
 # Commands (LITERAL1)
 ########################################
 
-MATES_CMD_SET_PAGE              LITERAL1
-MATES_CMD_GET_PAGE              LITERAL1
-MATES_CMD_SET_WIDGET_VALUE      LITERAL1
-MATES_CMD_GET_WIDGET_VALUE      LITERAL1
-MATES_CMD_SET_WIDGET_PARAM      LITERAL1
-MATES_CMD_GET_WIDGET_PARAM      LITERAL1
-MATES_CMD_SET_BACKLIGHT         LITERAL1
-MATES_CMD_CLR_PRINT_AREA        LITERAL1
-MATES_CMD_SET_PRINT_COLOR       LITERAL1
-MATES_CMD_SYSTEM_RESET          LITERAL1
-MATES_CMD_UPDATE_TEXT_AREA      LITERAL1
-MATES_CMD_APPEND_PRINT_AREA     LITERAL1
-MATES_CMD_PRINT_STRING          LITERAL1
-MATES_CMD_SET_WIDGET_32VAL      LITERAL1
-MATES_CMD_APPEND_SCOPE_DATA     LITERAL1
-MATES_CMD_UPDATE_DOT_MATRIX     LITERAL1
+MATES_CMD_SET_PAGE  LITERAL1
+MATES_CMD_GET_PAGE  LITERAL1
+MATES_CMD_SET_WIDGET_VALUE  LITERAL1
+MATES_CMD_GET_WIDGET_VALUE  LITERAL1
+MATES_CMD_SET_WIDGET_PARAM  LITERAL1
+MATES_CMD_GET_WIDGET_PARAM  LITERAL1
+MATES_CMD_SET_BACKLIGHT LITERAL1
+MATES_CMD_CLR_PRINT_AREA    LITERAL1
+MATES_CMD_SET_PRINT_COLOR   LITERAL1
+MATES_CMD_SYSTEM_RESET  LITERAL1
+MATES_CMD_UPDATE_TEXT_AREA  LITERAL1
+MATES_CMD_APPEND_PRINT_AREA LITERAL1
+MATES_CMD_PRINT_STRING  LITERAL1
+MATES_CMD_SET_WIDGET_32VAL  LITERAL1
+MATES_CMD_APPEND_SCOPE_DATA LITERAL1
+MATES_CMD_UPDATE_DOT_MATRIX LITERAL1
 
 ########################################
 # Errors (LITERAL1)
 ########################################
 
-MATES_ERROR_NONE                LITERAL1
-MATES_ERROR_COMMAND_FAILED      LITERAL1
-MATES_ERROR_COMMAND_TIMEOUT     LITERAL1
+MATES_ERROR_NONE    LITERAL1
+MATES_ERROR_COMMAND_FAILED  LITERAL1
+MATES_ERROR_COMMAND_TIMEOUT LITERAL1
 MATES_ERROR_RESPONSE_TIMEOUT    LITERAL1
-MATES_ERROR_NOT_INITIALIZED     LITERAL1
+MATES_ERROR_NOT_INITIALIZED LITERAL1
 
 ########################################
 # Widgets (LITERAL1)
 ########################################
 
-MATES_LED                       LITERAL1
-MATES_RULER_GAUGE               LITERAL1
-MATES_ANGULAR_METER             LITERAL1
-MATES_GAUGE_A                   LITERAL1
-MATES_GAUGE_B                   LITERAL1
-MATES_LED_DIGITS                LITERAL1
-MATES_LABELS                    LITERAL1
-MATES_BUTTON_A                  LITERAL1
-MATES_SWITCH_A                  LITERAL1
-MATES_SLIDER_B                  LITERAL1
-MATES_KNOB                      LITERAL1
-MATES_MEDIA_LED                 LITERAL1
-MATES_MEDIA_COLOR_LED           LITERAL1
-MATES_GAUGE_C                   LITERAL1
-MATES_GAUGE_D                   LITERAL1
-MATES_GAUGE_E                   LITERAL1
-MATES_GAUGE_F                   LITERAL1
-MATES_MEDIA_GAUGE_A             LITERAL1
-MATES_MEDIA_GAUGE_B             LITERAL1
-MATES_MEDIA_GAUGE_C             LITERAL1
-MATES_MEDIA_GAUGE_D             LITERAL1
-MATES_MEDIA_THERMOMETER         LITERAL1
-MATES_LED_SPECTRUM              LITERAL1
-MATES_MEDIA_SPECTRUM            LITERAL1
-MATES_SCOPE                     LITERAL1
-MATES_SYMBOLS                   LITERAL1
-MATES_ROTARY_GAUGE              LITERAL1
-MATES_BUTTON_B                  LITERAL1
-MATES_SWITCH_B                  LITERAL1
-MATES_MEDIA_BUTTON              LITERAL1
-MATES_SLIDER_A                  LITERAL1
-MATES_SLIDER_C                  LITERAL1
-MATES_SLIDER_D                  LITERAL1
-MATES_SLIDER_E                  LITERAL1
-MATES_SLIDER_F                  LITERAL1
-MATES_MEDIA_SLIDER              LITERAL1
-MATES_MEDIA_ROTARY              LITERAL1
-MATES_SLIDE_SHOW                LITERAL1
-MATES_ANIMATION                 LITERAL1
-MATES_FANCY_LED_A               LITERAL1
-MATES_FANCY_LED_B               LITERAL1
-MATES_FANCY_BUTTON_A            LITERAL1
-MATES_FANCY_BUTTON_B            LITERAL1
+MATES_LED   LITERAL1
+MATES_RULER_GAUGE   LITERAL1
+MATES_ANGULAR_METER LITERAL1
+MATES_GAUGE_A   LITERAL1
+MATES_GAUGE_B   LITERAL1
+MATES_LED_DIGITS    LITERAL1
+MATES_LABELS    LITERAL1
+MATES_BUTTON_A  LITERAL1
+MATES_SWITCH_A  LITERAL1
+MATES_SLIDER_B  LITERAL1
+MATES_KNOB  LITERAL1
+MATES_MEDIA_LED LITERAL1
+MATES_MEDIA_COLOR_LED   LITERAL1
+MATES_GAUGE_C   LITERAL1
+MATES_GAUGE_D   LITERAL1
+MATES_GAUGE_E   LITERAL1
+MATES_GAUGE_F   LITERAL1
+MATES_MEDIA_GAUGE_A LITERAL1
+MATES_MEDIA_GAUGE_B LITERAL1
+MATES_MEDIA_GAUGE_C LITERAL1
+MATES_MEDIA_GAUGE_D LITERAL1
+MATES_MEDIA_THERMOMETER LITERAL1
+MATES_LED_SPECTRUM  LITERAL1
+MATES_MEDIA_SPECTRUM    LITERAL1
+MATES_SCOPE LITERAL1
+MATES_SYMBOLS   LITERAL1
+MATES_ROTARY_GAUGE  LITERAL1
+MATES_BUTTON_B  LITERAL1
+MATES_SWITCH_B  LITERAL1
+MATES_MEDIA_BUTTON  LITERAL1
+MATES_SLIDER_A  LITERAL1
+MATES_SLIDER_C  LITERAL1
+MATES_SLIDER_D  LITERAL1
+MATES_SLIDER_E  LITERAL1
+MATES_SLIDER_F  LITERAL1
+MATES_MEDIA_SLIDER  LITERAL1
+MATES_MEDIA_ROTARY  LITERAL1
+MATES_SLIDE_SHOW    LITERAL1
+MATES_ANIMATION LITERAL1
+MATES_FANCY_LED_A   LITERAL1
+MATES_FANCY_LED_B   LITERAL1
+MATES_FANCY_BUTTON_A    LITERAL1
+MATES_FANCY_BUTTON_B    LITERAL1
