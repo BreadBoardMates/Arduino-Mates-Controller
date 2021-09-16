@@ -526,7 +526,7 @@ bool MatesController::updateDotMatrix(uint16_t index, const char * format, ...) 
   va_list args;
   va_start(args, format);
   vsprintf(buf, format, args);
-  res = updateDotMatrix(index, (int8_t *)buf, strlen(buf));
+  bool res = updateDotMatrix(index, (int8_t *)buf, strlen(buf));
   free(buf);
   return res;
 }
