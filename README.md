@@ -28,12 +28,14 @@ This is the main constructor for the library. It creates a unique instance and s
     // Creates a new instance named 'mates' which utilizes:
     //  - Serial as UART
     //  - Pin 4 of Arduino as Reset Pin (default)
+    //  - Reset mode as a LOW pulse (default)
     MatesController mates = MatesController(Serial);
 
 #### Example No. 2:
     // Creates a new instance named 'mates' which utilizes:
     //  - Serial as UART
     //  - Pin 5 of Arduino as Reset Pin
+    //  - Reset mode as a LOW pulse (default)
     MatesController mates = MatesController(Serial, 5);
 
 #### Example No. 3:
@@ -41,7 +43,7 @@ This is the main constructor for the library. It creates a unique instance and s
     //  - Serial as UART
     //  - Pin 6 of Arduino as Reset Pin
     //  - Reset mode as a HIGH pulse
-    MatesController mates = MatesController(Serial, 5, HIGH);    
+    MatesController mates = MatesController(Serial, 6, HIGH);    
 
 
 ### **MatesController(serial, dbSerial, resetPin, mode)**
