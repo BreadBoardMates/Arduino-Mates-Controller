@@ -7,10 +7,10 @@ unsigned long lastUpdate;
 
 // Test Start Values: Monday, 23:59:47 (will actually start at 48 seconds)
 uint8_t lastDay = 1;
-uint8_t day = 1;
-int16_t hrs = 23;
-int16_t min = 59;
-int16_t sec = 47;
+uint8_t dy = 1;
+int16_t hr = 23;
+int16_t mn = 59;
+int16_t sc = 47;
 
 // Days of Week Strings
 const char * daysOfWeek[] = {
@@ -49,31 +49,31 @@ void loop() {
 
     lastUpdate = millis();
 
-    sec++;
-    if (sec == 60) {
-      sec = 0;
-      min++;
+    sc++;
+    if (sc == 60) {
+      sc = 0;
+      mn++;
     }
-    if (min == 60) {
-      min = 0;
-      hrs++;
+    if (mn == 60) {
+      mn = 0;
+      hr++;
     }
-    if (hrs == 24) {
-      hrs = 0;
-      day++;
+    if (hr == 24) {
+      hr = 0;
+      dy++;
     }
-    day %= 7;
+    dy %= 7;
 
-    // mates.setWidgetValue(MATES_LED_DIGITS, 0, hrs);
-    // mates.setWidgetValue(MATES_LED_DIGITS, 1, min);
-    // mates.setWidgetValue(MATES_LED_DIGITS, 2, sec);
-    mates.setLedDigitsValue(0, hrs);
-    mates.setLedDigitsValue(1, min);
-    mates.setLedDigitsValue(2, sec);
+    // mates.setWidgetValue(MATES_LED_DIGITS, 0, hr);
+    // mates.setWidgetValue(MATES_LED_DIGITS, 1, mn);
+    // mates.setWidgetValue(MATES_LED_DIGITS, 2, sc);
+    mates.setLedDigitsValue(0, hr);
+    mates.setLedDigitsValue(1, mn);
+    mates.setLedDigitsValue(2, sc);
 
-    if (lastDay != day) {
-      mates.updateTextArea(0, daysOfWeek[day]);
-      lastDay = day; // prevents writing the same text to TextArea
+    if (lastDay != dy) {
+      mates.updateTextArea(0, daysOfWeek[dy]);
+      lastDay = dy; // prevents writing the same text to TextArea
     }
 
   }
