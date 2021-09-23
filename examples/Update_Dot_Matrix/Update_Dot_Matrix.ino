@@ -2,9 +2,15 @@
 
 MatesController mates = MatesController(Serial);
 
-char myBuffer[25] = "DotMatrxVal1 XXXVal2 XXX"; // 24 characters + null terminator (8 * 3 + 1 = 25)
-char * val1ptr = myBuffer + 13;
-char * val2ptr = myBuffer + 21;
+// The Dot Matrix can contain 24 characters
+char myBuffer[25]; 
+// "DotMatrxVal1 XXXVal2 YYY" is the reference string
+//    where XXX is first value
+//    and YYY is second value
+// This should appear as:
+//    DotMatrx
+//    Val1 XXX
+//    Val2 YYY
 
 int errLedStatus = LOW;
 void ErrorLed_Toggle() {
@@ -29,38 +35,10 @@ void loop() {
   static uint8_t val1 = 0;
   static uint8_t val2 = 255;
 
-  // START of Simulated Values
-  val1++;
-  val2--;
-
-  if (val1 < 100) {
-    val1ptr[0] = ' ';
-  } else {
-    val1ptr[0] = '0' + (val1 / 100);
-  }
-
-  if (val1 < 10) {
-    val1ptr[1] = ' ';
-  } else {
-    val1ptr[1] = '0' + ((val1 % 100) / 10);
-  }
-
-  val1ptr[2] = '0' + (val1 % 10);
-
-  if (val2 < 100) {
-    val2ptr[0] = ' ';
-  } else {
-    val2ptr[0] = '0' + (val2 / 100);
-  }
-
-  if (val2 < 10) {
-    val2ptr[1] = ' ';
-  } else {
-    val2ptr[1] = '0' + ((val2 % 100) / 10);
-  }
-
-  val2ptr[2] = '0' + (val2 % 10);
-  // END of Simulated Values
+  sprintf(myBuffer, "DotMatrxVal1 %03dVal2 %03d", val1, val2);
 
   mates.updateDotMatrix(0, myBuffer);
+
+  val1++;
+  val2--;
 }
