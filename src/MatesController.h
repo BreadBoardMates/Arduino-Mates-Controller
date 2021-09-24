@@ -25,8 +25,13 @@
 
 /*
  * RELEASE NOTES
- *   1.0.0: 
+ *   1.0.0: September 16, 2021
  *      Initial release
+ *   1.0.1: September 23, 2021
+ *      Updated examples
+ *      Minor fixes to library
+ *   1.0.2: September 24, 2021
+ *      Changed library name   
  */
 
 
