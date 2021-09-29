@@ -261,6 +261,10 @@ int16_t MatesController::getWidgetValue(MatesWidget type, uint8_t index) {
   return getWidgetValue((int16_t)((type << 8) | index));
 }
 
+bool MatesController::setLedDigitsValue(uint8_t index, int16_t value) {
+  return setWidgetValue((int16_t)((MATES_LED_DIGITS << 8) | index), value);
+}
+
 bool MatesController::setLedDigitsValue(uint8_t index, int32_t value) {
   return _setWidgetValue((int16_t)((MATES_LED_DIGITS << 8) | index), value);
 }

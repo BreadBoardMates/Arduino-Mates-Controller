@@ -18,7 +18,7 @@
 #include <stdarg.h>
 
 #define __MATES_STUDIO_COMPATIBILITY_VERSION__  "1.0.0"
-#define __MATES_CONTROLLER_LIBRARY_VERSION__    "1.0.2"
+#define __MATES_CONTROLLER_LIBRARY_VERSION__    "1.0.3"
 
 #define __MATES_STRING_BUFFER_SIZE__            50
 #define __MATES_BOOT_TIMEOUT__                  10000
@@ -31,7 +31,12 @@
  *      Updated examples
  *      Minor fixes to library
  *   1.0.2: September 24, 2021
- *      Changed library name   
+ *      Changed library name
+ *   1.0.3: September 29, 2021
+ *      Added bool updateTextArea(uint16_t index, String str)
+ *      Added bool appendToPrintArea(uint16_t index, String str)
+ *      Added bool updateDotMatrix(uint16_t index, String str)
+ *      Fixed missing bool setLedDigitsValue(uint8_t index, int16_t value)
  */
 
 
