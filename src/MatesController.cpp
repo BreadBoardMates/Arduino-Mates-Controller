@@ -389,6 +389,10 @@ bool MatesController::updateTextArea(uint16_t index, const char * format, ...) {
   return res;
 }
 
+bool MatesController::updateTextArea(uint16_t index, String str) {
+  return updateTextArea(index, str.c_str());
+}
+
 bool MatesController::clearPrintArea(uint16_t index) {
   if (debugSerial != NULL) {
     debugSerial->write("Clear PrintArea");
@@ -476,6 +480,10 @@ bool MatesController::appendToPrintArea(uint16_t index, const char * format, ...
   return res;
 }
 
+bool MatesController::appendToPrintArea(uint16_t index, String str) {
+  return appendToPrintArea(index, str.c_str());
+}
+
 bool MatesController::appendToScope(uint16_t index, const int16_t * buf, int16_t len) {
   if (debugSerial != NULL) {
     debugSerial->write("Append to Scope");
@@ -529,6 +537,10 @@ bool MatesController::updateDotMatrix(uint16_t index, const char * format, ...) 
   bool res = updateDotMatrix(index, (int8_t *)buf, strlen(buf));
   free(buf);
   return res;
+}
+
+bool MatesController::updateDotMatrix(uint16_t index, String str) {
+  return updateDotMatrix(index, str.c_str());
 }
 
 String MatesController::getVersion() {

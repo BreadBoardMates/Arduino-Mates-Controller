@@ -97,6 +97,7 @@ class MatesController {
     // TextArea functions    
     bool clearTextArea(uint16_t index);
     bool updateTextArea(uint16_t index, const char * format, ...);
+    bool updateTextArea(uint16_t index, String str);
 
     // PrintArea functions
     bool clearPrintArea(uint16_t index);
@@ -104,12 +105,14 @@ class MatesController {
     bool setPrintAreaColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b);
     bool appendToPrintArea(uint16_t index, const int8_t * buf, uint16_t len);
     bool appendToPrintArea(uint16_t index, const char * format, ...);
+    bool appendToPrintArea(uint16_t index, String str);
 
     // Scope functions
     bool appendToScope(uint16_t index, const int16_t * buf, int16_t len);
 
     // Dot Matrix functions
     bool updateDotMatrix(uint16_t index, const char * format, ...);
+    bool updateDotMatrix(uint16_t index, String str);
 
     // Utility functions
     String getVersion();
