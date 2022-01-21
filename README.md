@@ -97,6 +97,9 @@ This function must be used once to initialize the Serial port at the start of th
     // Initializes display serial port with 115200 baud and resets the display
     mates.begin(115200);
 
+#### Example No. 3: 
+    // Initializes display serial port with 19200 baud and skips reset
+    mates.begin(19200, false);
 
 **Return:** success or failure (_boolean_)
 
@@ -105,6 +108,7 @@ This function must be used once to initialize the Serial port at the start of th
 
 **Note 2:** _If a debug serial port is specified, it should be initialized manually before running the begin() function of this library._
 
+**Note 3:** _If not using reset, users needs to be aware of the boot timing of the module. This should be around 3-5 seconds or more depending on the project after power on._
 
 
 ### **reset(waitPeriod)**
