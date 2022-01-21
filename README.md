@@ -76,15 +76,15 @@ This is an alternative constructor for the library. It creates a unique instance
 **Note:** _If a debug serial port is specified, it should be initialized before running the begin() function of this library._
 
 
-### **begin(baudrate)**
+### **begin(baudrate, resetModule)**
 
 This function must be used once to initialize the Serial port at the start of the Arduino application.
 
 
-| Parameters              | Type    | Description                                                            |
-|:-----------------------:|:-------:| ---------------------------------------------------------------------- |
-| baudrate<br/>(optional) | int32_t | Baudrate setting to be used to control the display module (default: 9600)<br/>**Note:** _This is ignored when not using a HardwareSerial to communicate with the display. In that case, the serial needs to be initialize before using this function._|
-
+| Parameters                 | Type    | Description                                                            |
+|:--------------------------:|:-------:| ---------------------------------------------------------------------- |
+| baudrate<br/>(optional)    | int32_t | Baudrate setting to be used to control the display module (default: 9600)<br/>**Note:** _This is ignored when not using a HardwareSerial to communicate with the display. In that case, the serial needs to be initialize before using this function._ |
+| resetModule<br/>(optional) | bool    | Indicates whether the module should be reset from the hardware reset pin (default: true) |
 
 **Return:** success or failure (_boolean_)
 
@@ -700,6 +700,73 @@ This function can be used to append contents to the PrintArea specified by_index
 #### Example No. 2: 
     int value = 108;
     mates.updateDotMatrix(9, "Value: %d", 108); // Update DotMatrix0 to show value
+
+
+### **getButtonEventCount()**
+
+This function can be used to query the number of button events recorded by a touch screen module
+
+**Return:** Number of recorder button events (uint16_t)
+
+
+#### Example: 
+    uint16_t btnEvents = mates.getButtonEventCount(); // Query the number of button events recorded
+
+
+### **getNextButtonEvent()**
+
+This function can be used to query the source of next recorded button event
+
+**Return:** Widget ID of the next event button (int16_t)
+
+
+#### Example: 
+    // If there is any event recorded
+    if (mates.getButtonEventCount() > 0) { 
+        int16_t button = mates.getNextButtonEvent();
+        switch (button) {
+            case MediaButton1: // if the button pressed is MediaButton1
+                // do something
+                break;
+            // add more possible cases here...
+            default:
+                break;
+        }
+    } 
+
+
+### **getSwipeEventCount()**
+
+This function can be used to query the number of swipe events recorded by a touch screen module
+
+**Return:** Number of recorder swipe events (uint16_t)
+
+
+#### Example: 
+    uint16_t swipeEvents = mates.getSwipeEventCount(); // Query the number of swipe events recorded
+
+
+### **getNextButtonEvent()**
+
+This function can be used to query the source of next recorded button event
+
+**Return:** Swipe event (int16_t)
+
+
+#### Example: 
+    // If there is any event recorded
+    if (mates.getSwipeEventCount() > 0) { 
+        int16_t swipe = mates.getNextSwipeEvent();
+        if ((swipe & MATES_SWIPE_SOUTH) != 0) {
+            // if swipe is towards from top to bottom
+        }
+        if ((swipe & MATES_SWIPE_EAST) != 0) {
+            // if swipe is towards from left to right
+        }
+        if ((swipe & (MATES_SWIPE_SOUTH | MATES_SWIPE_EAST)) == (MATES_SWIPE_SOUTH | MATES_SWIPE_EAST)) {
+            // if swipe is towards from top left to bottom right
+        }
+    }
 
 
 ### **getVersion()**

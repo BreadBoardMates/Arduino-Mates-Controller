@@ -76,7 +76,7 @@ MatesController::MatesController(AltSoftSerial &serial, Stream &dbSerial, uint8_
 // -------------------- PUBLIC FUNCTIONS ---------------------
 // -----------------------------------------------------------
 
-bool MatesController::begin(int32_t baudrate) {
+bool MatesController::begin(int32_t baudrate, bool resetModule) {
 
   if (debugSerial != NULL) {
     debugSerial->write("Initializing Serial UART @");
@@ -104,7 +104,26 @@ bool MatesController::begin(int32_t baudrate) {
       return false;
   }
 
-  return reset();
+  if (resetModule) {
+    return this->reset();
+  }
+
+  unsigned long startTime = 0;
+
+  if (debugSerial != NULL) {
+    startTime = millis();
+  }
+
+  matesReady = WaitForACK(__MATES_BOOT_TIMEOUT__);
+
+  if (debugSerial != NULL) {
+    debugSerial->write(matesReady ? "Ready after " : "\nTimed out after ");
+    debugSerial->print(millis() - startTime);
+    debugSerial->write(" ms\n");
+  }
+  matesReady = true;
+
+  return matesReady;
 }
 
 bool MatesController::reset(uint16_t waitPeriod) {
@@ -117,6 +136,7 @@ bool MatesController::reset(uint16_t waitPeriod) {
   digitalWrite(matesResetPin, matesResetMode);
   delay(100);
   digitalWrite(matesResetPin, ~matesResetMode);
+
   unsigned long startTime = 0;
 
   if (debugSerial != NULL) {
@@ -545,6 +565,117 @@ bool MatesController::updateDotMatrix(uint16_t index, const char * format, ...) 
 
 bool MatesController::updateDotMatrix(uint16_t index, String str) {
   return updateDotMatrix(index, str.c_str());
+}
+
+uint16_t MatesController::getButtonEventCount() {
+  if (debugSerial != NULL) {
+    debugSerial->write("Get number of recorded button events... ");
+  }
+  if (matesReady) {
+    WriteCommand(MATES_CMD_BTN_EVENT_COUNT);
+    return (uint16_t) ReadResponse();
+  } else {
+    matesError = MATES_ERROR_NOT_INITIALIZED;
+    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    return -1;
+  }
+}
+
+int16_t MatesController::getNextButtonEvent() {
+  if (debugSerial != NULL) {
+    debugSerial->write("Query next button event... ");
+  }
+  if (matesReady) {
+    WriteCommand(MATES_CMD_NEXT_BTN_EVENT);
+    return ReadResponse();
+  } else {
+    matesError = MATES_ERROR_NOT_INITIALIZED;
+    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    return -1;
+  }
+}
+
+uint16_t MatesController::getSwipeEventCount() {
+  if (debugSerial != NULL) {
+    debugSerial->write("Get number of recorded swipe events... ");
+  }
+  if (matesReady) {
+    WriteCommand(MATES_CMD_SWP_EVENT_COUNT);
+    return (uint16_t) ReadResponse();
+  } else {
+    matesError = MATES_ERROR_NOT_INITIALIZED;
+    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    return -1;
+  }
+}
+
+int16_t MatesController::getNextSwipeEvent() {
+  if (debugSerial != NULL) {
+    debugSerial->write("Query next swipe event... ");
+  }
+  if (matesReady) {
+    WriteCommand(MATES_CMD_NEXT_SWP_EVENT);
+    return ReadResponse();
+  } else {
+    matesError = MATES_ERROR_NOT_INITIALIZED;
+    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    return -1;
+  }
+}
+
+bool MatesController::pinMode(int16_t pin, int16_t mode) {
+  if (debugSerial != NULL) {
+    debugSerial->write("Setting pin ");
+    debugSerial->print(pin);
+    debugSerial->write(" to mode ");
+    debugSerial->print(mode);
+    debugSerial->write("... ");
+  }
+  if (matesReady) {
+    WriteCommand(MATES_CMD_PIN_MODE);
+    WriteWord(pin);
+    WriteWord(mode);
+  } else {
+    matesError = MATES_ERROR_NOT_INITIALIZED;
+    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+  }
+  return matesReady;
+}
+
+bool MatesController::digitalWrite(int16_t pin, int16_t value) {
+  if (debugSerial != NULL) {
+    debugSerial->write("Setting pin ");
+    debugSerial->print(pin);
+    debugSerial->write(" to value ");
+    debugSerial->print(value);
+    debugSerial->write("... ");
+  }
+  if (matesReady) {
+    WriteCommand(MATES_CMD_DIGITAL_WRITE);
+    WriteWord(pin);
+    WriteWord(value);
+  } else {
+    matesError = MATES_ERROR_NOT_INITIALIZED;
+    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+  }
+  return matesReady;
+}
+
+int16_t MatesController::digitalRead(int16_t pin) {
+  if (debugSerial != NULL) {
+    debugSerial->write("Query value of pin ");
+    debugSerial->print(pin);
+    debugSerial->write("... ");
+  }
+  if (matesReady) {
+    WriteCommand(MATES_CMD_DIGITAL_READ);
+    WriteWord(pin);
+    return ReadResponse();
+  } else {
+    matesError = MATES_ERROR_NOT_INITIALIZED;
+    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    return -1;
+  }
 }
 
 String MatesController::getVersion() {

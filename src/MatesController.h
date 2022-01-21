@@ -7,6 +7,8 @@
 #include "includes/MatesErrors.h"
 #include "includes/MatesWidgets.h"
 #include "includes/MatesCommands.h"
+#include "includes/MatesPinConsts.h"
+#include "includes/MatesWidgetConsts.h"
 
 #if ARDUINO >= 100
 #include "Arduino.h"
@@ -17,11 +19,11 @@
 #endif
 #include <stdarg.h>
 
-#define __MATES_STUDIO_COMPATIBILITY_VERSION__  "1.0.0"
-#define __MATES_CONTROLLER_LIBRARY_VERSION__    "1.0.3"
+#define __MATES_STUDIO_COMPATIBILITY_VERSION__  "1.0.8"
+#define __MATES_CONTROLLER_LIBRARY_VERSION__    "1.0.4"
 
 #define __MATES_STRING_BUFFER_SIZE__            50
-#define __MATES_BOOT_TIMEOUT__                  10000
+#define __MATES_BOOT_TIMEOUT__                  5000
 
 /*
  * RELEASE NOTES
@@ -37,6 +39,11 @@
  *      Added bool appendToPrintArea(uint16_t index, String str)
  *      Added bool updateDotMatrix(uint16_t index, String str)
  *      Fixed missing bool setLedDigitsValue(uint8_t index, int16_t value)
+ *   1.0.4: January 21, 2021
+ *      Added int16_t getButtonEventCount()
+ *      Added int16_t getNextButtonEvent()
+ *      Added int16_t getSwipeEventCount()
+ *      Added int16_t getNextSwipeEvent()
  */
 
 
@@ -67,7 +74,7 @@ class MatesController {
 
     // HERE ARE THE FUNCTIONS AVAILABLE TO THE USER
 
-    bool begin(int32_t baudrate = 9600);
+    bool begin(int32_t baudrate = 9600, bool resetModule = true);
     bool reset(uint16_t waitPeriod = __MATES_BOOT_TIMEOUT__);
     bool softReset(uint16_t waitPeriod = __MATES_BOOT_TIMEOUT__);
 
@@ -118,6 +125,19 @@ class MatesController {
     // Dot Matrix functions
     bool updateDotMatrix(uint16_t index, const char * format, ...);
     bool updateDotMatrix(uint16_t index, String str);
+
+    // Button functions
+    uint16_t getButtonEventCount();
+    int16_t getNextButtonEvent();
+
+    // Swipe functions
+    uint16_t getSwipeEventCount();
+    int16_t getNextSwipeEvent();
+
+    // GPIO functions
+    bool pinMode(int16_t pin, int16_t mode);
+    bool digitalWrite(int16_t pin, int16_t value);
+    int16_t digitalRead(int16_t pin);
 
     // Utility functions
     String getVersion();
