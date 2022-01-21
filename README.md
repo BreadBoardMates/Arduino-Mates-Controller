@@ -120,7 +120,7 @@ The function finishes as soon as the display sends the ready signal or the wait 
 
 | Parameters                | Type     | Description                                       |
 |:-------------------------:|:--------:| ------------------------------------------------- |
-| waitPeriod<br/>(optional) | uint32_t | Timeout period to wait until the display is ready |
+| waitPeriod<br/>(optional) | uint16_t | Timeout period to wait until the display is ready |
 
 
 **Return:** success or failure (_boolean_)
@@ -142,7 +142,7 @@ The function finishes as soon as the display sends the ready signal or the wait 
 
 | Parameters                | Type     | Description                                       |
 |:-------------------------:|:--------:| ------------------------------------------------- |
-| waitPeriod<br/>(optional) | uint32_t | Timeout period to wait until the display is ready |
+| waitPeriod<br/>(optional) | uint16_t | Timeout period to wait until the display is ready |
 
 
 **Return:** success or failure (_boolean_)
@@ -153,6 +153,22 @@ The function finishes as soon as the display sends the ready signal or the wait 
     mates.softReset();          // a period of 5 seconds (default)
     // Reset the display and wait for
     // mates.softReset(4000);   // a period of 4 seconds
+
+
+### **setBootTimeout(timeout)**
+
+This function can be used to set the default wait period during reset.
+
+| Parameters  | Type     | Description                                                   |
+|:-----------:|:--------:| ------------------------------------------------------------- |
+| timeout     | uint32_t | New default timeout period to wait until the display is ready |
+
+
+**Return:** success or failure (_boolean_)
+
+
+#### Example:
+    mates.setBootTimeout(10000); // sets boot timeout to a period of 10 seconds
 
 
 ### **setBacklight(value)**
@@ -218,48 +234,8 @@ This function can be used to set the 16-bit integer _value_ of the specified _wi
 #### Example: 
     mates.setWidgetValue(MediaGaugeB0, 50); // Set value of MediaGaugeB0 to 50
     // Note: The ID of MediaGaugeB0 can be copied or exported from Mates Studio
-
-
-### **setWidgetValue(widget, value)**
-
-This function can be used to set the 32-bit integer _value_ of the specified _widget_
-
-
-| Parameters | Type    | Description                  |
-|:----------:|:-------:| ---------------------------- |
-| widget     | int16_t | The ID of the target widget  |
-| value      | int32_t | The new value for the widget |
-
-
-**Return:** success or failure (_boolean_)
-
-
-#### Example: 
-    mates.setWidgetValue(LedDigits0, 602214076); // Set value of LedDigits0 to 602214076
-    // Note: The ID of LedDigits0 can be copied or exported from Mates Studio
-
-**Note:** _This function is only applicable for **Int32** LedDigits_
-
-
-### **setWidgetValue(widget, value)**
-
-This function can be used to set the 32-bit float _value_ of the specified _widget_
-
-
-| Parameters | Type    | Description                  |
-|:----------:|:-------:| ---------------------------- |
-| widget     | int16_t | The ID of the target widget  |
-| value      | float   | The new value for the widget |
-
-
-**Return:** success or failure (_boolean_)
-
-
-#### Example: 
-    mates.setWidgetValue(LedDigits1, 3.1416); // Set value of LedDigits1 to 3.1416
-    // Note: The ID of LedDigits1 can be copied or exported from Mates Studio
-
-**Note:** _This function is only applicable for **Float** LedDigits_
+    
+**Note:** _This function is not applicable to **Int32** and **Float** LedDigits_
 
 
 ### **getWidgetValue(widget)**
@@ -278,6 +254,8 @@ This function can be used to query the specified _widget_'s value.
 #### Example: 
     int16_t widgetVal = mates.getWidgetValue(MediaLed4); // Query the current value of MediaLed4
     // Note: The ID of MediaLed4 can be copied or exported from Mates Studio
+
+**Note:** _This function is not applicable to **Int32** and **Float** LedDigits_
 
 
 ### **setWidgetValue(type, index, value)**
@@ -298,51 +276,9 @@ This function can be used to set the 16-bit integer _value_ of the specified _wi
 #### Example: 
     mates.setWidgetValue(MATES_MEDIA_GAUGE_B, 0, 50); // Set value of MediaGaugeB0 to 50
 
-**Note:** _All applicable widget types are listed in [here](src/includes/MatesWidgets.md)._
-
-
-### **setWidgetValue(type, index, value)**
-
-This function can be used to set the 16-bit integer _value_ of the widget specified by _type_ and _index_.
-
-
-| Parameters | Type        | Description                    |
-|:----------:|:-----------:| ------------------------------ |
-| type       | MatesWidget | The type of the target widget  |
-| index      | int8_t      | The index of the target widget |
-| value      | int32_t     | The new value for the widget   |
-
-
-**Return:** success or failure (_boolean_)
-
-
-#### Example: 
-    mates.setWidgetValue(MATES_LED_DIGITS, 0, 602214076); // Set value of LedDigits0 to 602214076
-
 **Note 1:** _All applicable widget types are listed in [here](src/includes/MatesWidgets.md)._
-**Note 2:** _This function is only applicable for **Int32** LedDigits_
 
-
-### **setWidgetValue(type, index, value)**
-
-This function can be used to set the 16-bit integer _value_ of the widget specified by _type_ and _index_.
-
-
-| Parameters | Type        | Description                    |
-|:----------:|:-----------:| ------------------------------ |
-| type       | MatesWidget | The type of the target widget  |
-| index      | int8_t      | The index of the target widget |
-| value      | float       | The new value for the widget   |
-
-
-**Return:** success or failure (_boolean_)
-
-
-#### Example: 
-    mates.setWidgetValue(LedDigits1, 3.1416); // Set value of LedDigits1 to 3.1416
-
-**Note 1:** _All applicable widget types are listed in [here](src/includes/MatesWidgets.md)._
-**Note 2:** _This function is only applicable for **Float** LedDigits_
+**Note 2:** _This function is not applicable to **Int32** and **Float** LedDigits_
 
 
 ### **getWidgetValue(type, index)**
@@ -362,7 +298,67 @@ This function can be used to query the value of the widget specified by _type_ a
 #### Example: 
     int16_t widgetVal = mates.getWidgetValue(MATES_MEDIA_LED, 4); // Query the current value of MediaLed4
 
-**Note:** _This function is not applicable to **Int32** and **Float** LedDigits_
+**Note 1:** _All applicable widget types are listed in [here](src/includes/MatesWidgets.md)._
+
+**Note 2:** _This function is not applicable to **Int32** and **Float** LedDigits_
+
+
+### **setLedDigitsValue(index, value)**
+
+This function can be used to set the 16-bit integer _value_ of the LedDigits specified by _index_.
+
+
+| Parameters | Type    | Description                       |
+|:----------:|:-------:| --------------------------------- |
+| index      | int8_t  | The index of the target LedDigits |
+| value      | int16_t | The new value for the LedDigits   |
+
+
+**Return:** success or failure (_boolean_)
+
+
+#### Example: 
+    mates.setLedDigitsValue(0, 1234); // Set value of LedDigits0 to 1234
+
+**Note:** _This function is only applicable for **Int16** LedDigits_
+
+
+### **setLedDigitsValue(index, value)**
+
+This function can be used to set the 32-bit integer _value_ of the LedDigits specified by _index_.
+
+
+| Parameters | Type    | Description                       |
+|:----------:|:-------:| --------------------------------- |
+| index      | int8_t  | The index of the target LedDigits |
+| value      | int32_t | The new value for the LedDigits   |
+
+
+**Return:** success or failure (_boolean_)
+
+
+#### Example: 
+    mates.setLedDigitsValue(0, 602214076); // Set value of LedDigits0 to 602214076
+
+**Note:** _This function is only applicable for **Int32** LedDigits_
+
+
+### **setLedDigitsValue(index, value)**
+
+This function can be used to set the float _value_ of the LedDigits specified by _index_.
+
+| Parameters | Type   | Description                       |
+|:----------:|:------:| --------------------------------- |
+| index      | int8_t | The index of the target LedDigits |
+| value      | float  | The new value for the LedDigits   |
+
+**Return:** success or failure (_boolean_)
+
+
+#### Example: 
+    mates.setLedDigitsValue(LedDigits1, 3.1416); // Set value of LedDigits1 to 3.1416
+
+**Note:** _This function is only applicable for **Float** LedDigits_
 
 
 ### **setSpectrumValue(widget, gaugeIndex, value)**
@@ -381,9 +377,10 @@ This function can be used to set the _value_ of a specified gauge index of the s
 
 
 #### Example: 
-    mates.setSpectrumValue(MatesLedSpectrum5, 2, 64);
+    mates.setSpectrumValue(LedSpectrum5, 2, 64);
     // Set value of gauge index 2 of LedSpectrum5 to 64
 
+**Note:** _This function is only applicable for LedSpectrum and MediaSpectrum_
 
 ### **setLedSpectrumValue(index, gaugeIndex, value)**
 
@@ -434,7 +431,7 @@ This function can be used to set the parameter (_param_) of the target _widget_ 
 |:----------:|:-------:| -------------------------------------- |
 | widget     | int16_t | The ID of the target widget            |
 | param      | int16_t | The target widget parameter            |
-| value      | int32_t | The new value for the widget parameter |
+| value      | int16_t | The new value for the widget parameter |
 
 
 **Return:** success or failure (_boolean_)
@@ -476,7 +473,7 @@ This function can be used to set the parameter (_param_) of the target widget, d
 | type       | MatesWidget | The type of the target widget          |
 | index      | int8_t      | The index of the target widget         |
 | param      | int16_t     | The target widget parameter            |
-| value      | int32_t     | The new value for the widget parameter |
+| value      | int16_t     | The new value for the widget parameter |
 
 
 **Return:** success or failure (_boolean_)
@@ -512,12 +509,12 @@ This function can be used to query the parameter (_param_) of the target widget,
 This function can be used to adjust the max string buffer _size_ to be used when composing a string for a TextArea or a PrintArea. The string composition is done by [updateTextArea(index, format, ...)](#updatetextareaindex-format-) and [appendToPrintArea(index, format, ...)](#appendtoprintareaindex-format-)
 
 
-| Parameters | Type  | Description         |
-|:----------:|:-----:| ------------------- |
-| size       | int   | The new buffer size |
+| Parameters | Type     | Description         |
+|:----------:|:--------:| ------------------- |
+| size       | uint16_t | The new buffer size |
 
 
-**Return:** None
+**Return:** success or failure (boolean)
 
 
 #### Example: 
@@ -714,7 +711,8 @@ This function can be used to query the number of button events recorded by a tou
 
 
 #### Example: 
-    uint16_t btnEvents = mates.getButtonEventCount(); // Query the number of button events recorded
+    // Query the number of button events recorded
+    uint16_t btnEvents = mates.getButtonEventCount(); 
 
 
 ### **getNextButtonEvent()**
@@ -746,8 +744,9 @@ This function can be used to query the number of swipe events recorded by a touc
 **Return:** Number of recorder swipe events (uint16_t)
 
 
-#### Example: 
-    uint16_t swipeEvents = mates.getSwipeEventCount(); // Query the number of swipe events recorded
+#### Example:
+    // Query the number of swipe events recorded
+    uint16_t swipeEvents = mates.getSwipeEventCount(); 
 
 
 ### **getNextButtonEvent()**

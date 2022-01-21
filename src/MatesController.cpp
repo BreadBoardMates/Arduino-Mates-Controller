@@ -143,7 +143,7 @@ bool MatesController::reset(uint16_t waitPeriod) {
     startTime = millis();
   }
 
-  matesReady = WaitForACK(waitPeriod);
+  matesReady = WaitForACK((waitPeriod == 0) ? __MATES_BOOT_TIMEOUT__ : matesBootTimeout);
 
   if (debugSerial != NULL) {
     debugSerial->write(matesReady ? "\nDone after " : "\nTimed out after ");
@@ -166,7 +166,7 @@ bool MatesController::softReset(uint16_t waitPeriod) {
     startTime = millis();
   }
   
-  matesReady = WaitForACK(waitPeriod);
+  matesReady = WaitForACK((waitPeriod == 0) ? matesBootTimeout : waitPeriod);
 
   if (debugSerial != NULL) {
     debugSerial->write(matesReady ? "Done after " : "Timed out after ");
@@ -360,8 +360,10 @@ int16_t MatesController::getWidgetParam(MatesWidget type, uint8_t index, int16_t
   return getWidgetParam(((int16_t)(type << 8) | index), param);
 }
 
-void MatesController::setBufferSize(int size) {
+bool MatesController::setBufferSize(uint16_t size) {
+  if (size > __MATES_STRING_MAX_BUFFER_SIZE__) return false;
   matesBufferSize = size;
+  return true;
 }
 
 bool MatesController::clearTextArea(uint16_t index) {

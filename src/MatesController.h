@@ -23,7 +23,8 @@
 #define __MATES_STUDIO_COMPATIBILITY_VERSION__  "1.0.8"
 #define __MATES_CONTROLLER_LIBRARY_VERSION__    "1.0.4"
 
-#define __MATES_STRING_BUFFER_SIZE__            50
+#define __MATES_STRING_MAX_BUFFER_SIZE__        2500 // max allowable is 32767 but usually not required anyway
+#define __MATES_STRING_BUFFER_SIZE__            250
 #define __MATES_BOOT_TIMEOUT__                  5000
 
 /*
@@ -76,8 +77,9 @@ class MatesController {
     // HERE ARE THE FUNCTIONS AVAILABLE TO THE USER
 
     bool begin(int32_t baudrate = 9600, bool resetModule = true);
-    bool reset(uint16_t waitPeriod = __MATES_BOOT_TIMEOUT__);
-    bool softReset(uint16_t waitPeriod = __MATES_BOOT_TIMEOUT__);
+    bool reset(uint16_t waitPeriod = 0);
+    bool softReset(uint16_t waitPeriod = 0);
+    void setBootTimeout(uint16_t timeout = __MATES_BOOT_TIMEOUT__);
 
     // Non-widget functions
     bool setBacklight(uint8_t value);
@@ -105,7 +107,7 @@ class MatesController {
     int16_t getWidgetParam(MatesWidget type, uint8_t index, int16_t param);
 
     // TextArea and PrintArea support functions
-    void setBufferSize(int size);
+    bool setBufferSize(uint16_t size);
 
     // TextArea functions    
     bool clearTextArea(uint16_t index);
@@ -154,7 +156,8 @@ class MatesController {
 
     bool matesReady = false;
     MatesError matesError = MATES_ERROR_NONE;
-    int matesBufferSize = __MATES_STRING_BUFFER_SIZE__;
+    int16_t matesBufferSize = __MATES_STRING_BUFFER_SIZE__;
+    uint16_t matesBootTimeout = __MATES_BOOT_TIMEOUT__;
 
     uint8_t matesResetPin = 4;
     uint8_t matesResetMode = LOW;
