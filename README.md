@@ -761,13 +761,13 @@ This function can be used to query the source of next recorded button event
     // If there is any event recorded
     if (mates.getSwipeEventCount() > 0) { 
         int16_t swipe = mates.getNextSwipeEvent();
-        if ((swipe & MATES_SWIPE_SOUTH) != 0) {
+        if ((swipe & MATES_SWIPE_SOUTH) == MATES_SWIPE_SOUTH) {
             // if swipe is towards from top to bottom
         }
-        if ((swipe & MATES_SWIPE_EAST) != 0) {
+        if ((swipe & MATES_SWIPE_EAST) == MATES_SWIPE_EAST) {
             // if swipe is towards from left to right
         }
-        if ((swipe & (MATES_SWIPE_SOUTH | MATES_SWIPE_EAST)) == (MATES_SWIPE_SOUTH | MATES_SWIPE_EAST)) {
+        if ((swipe & MATES_SWIPE_TLBR) == MATES_SWIPE_TLBR) {
             // if swipe is towards from top left to bottom right
         }
     }

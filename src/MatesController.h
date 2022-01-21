@@ -8,6 +8,7 @@
 #include "includes/MatesWidgets.h"
 #include "includes/MatesCommands.h"
 #include "includes/MatesPinConsts.h"
+#include "includes/MatesSwipeConsts.h"
 #include "includes/MatesWidgetConsts.h"
 
 #if ARDUINO >= 100
