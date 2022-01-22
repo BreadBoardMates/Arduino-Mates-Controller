@@ -41,7 +41,7 @@
  *      Added bool appendToPrintArea(uint16_t index, String str)
  *      Added bool updateDotMatrix(uint16_t index, String str)
  *      Fixed missing bool setLedDigitsValue(uint8_t index, int16_t value)
- *   1.0.4: January 21, 2021
+ *   1.0.4: January 22, 2021
  *      Added int16_t getButtonEventCount()
  *      Added int16_t getNextButtonEvent()
  *      Added int16_t getSwipeEventCount()

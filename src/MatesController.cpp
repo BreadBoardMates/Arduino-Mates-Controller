@@ -114,7 +114,7 @@ bool MatesController::begin(int32_t baudrate, bool resetModule) {
     startTime = millis();
   }
 
-  matesReady = WaitForACK(__MATES_BOOT_TIMEOUT__);
+  matesReady = WaitForACK(matesBootTimeout);
 
   if (debugSerial != NULL) {
     debugSerial->write(matesReady ? "Ready after " : "\nTimed out after ");
@@ -143,7 +143,7 @@ bool MatesController::reset(uint16_t waitPeriod) {
     startTime = millis();
   }
 
-  matesReady = WaitForACK((waitPeriod == 0) ? __MATES_BOOT_TIMEOUT__ : matesBootTimeout);
+  matesReady = WaitForACK((waitPeriod == 0) ? matesBootTimeout : waitPeriod);
 
   if (debugSerial != NULL) {
     debugSerial->write(matesReady ? "\nDone after " : "\nTimed out after ");
