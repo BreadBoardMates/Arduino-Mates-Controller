@@ -83,8 +83,9 @@ bool MatesController::begin(int32_t baudrate, bool resetModule) {
   if (debugSerial != NULL) {
     debugSerial->write("Initializing Serial UART @");
     debugSerial->println(baudrate);
-  }  
-  pinMode(matesResetPin, OUTPUT);
+  } 
+
+  if (resetModule) pinMode(matesResetPin, OUTPUT);
 
   switch (matesSerialType) {
     case HARDWARE_SERIAL:
@@ -106,26 +107,8 @@ bool MatesController::begin(int32_t baudrate, bool resetModule) {
       return false;
   }
 
-  if (resetModule) {
-    return this->reset();
-  }
+  return resetModule ? reset() : softReset();
 
-  unsigned long startTime = 0;
-
-  if (debugSerial != NULL) {
-    startTime = millis();
-  }
-
-  matesReady = WaitForACK(matesBootTimeout);
-
-  if (debugSerial != NULL) {
-    debugSerial->write(matesReady ? "Ready after " : "\nTimed out after ");
-    debugSerial->print(millis() - startTime);
-    debugSerial->write(" ms\n");
-  }
-  if (!resetModule) matesReady = true;
-
-  return matesReady;
 }
 
 bool MatesController::reset(uint16_t waitPeriod) {
@@ -161,9 +144,10 @@ bool MatesController::softReset(uint16_t waitPeriod) {
     debugSerial->write("Resetting module using command... ");
   }
   
+  WriteCommand(MATES_CMD_SYSTEM_RESET);
+
   unsigned long startTime = 0;
 
-  WriteCommand(MATES_CMD_SYSTEM_RESET);
   if (debugSerial != NULL) {
     startTime = millis();
   }
@@ -406,16 +390,16 @@ bool MatesController::updateTextArea(uint16_t index, const char * format, ...) {
     
   bool res = false;
   if (matesReady) {
-    char * buf = (char *) malloc(__MATES_STR_BFSIZE__);
+    char * buf = (char *) malloc(matesBufferSize + 1);
     va_list args;
     va_start(args, format);
     // vsprintf(buf, format, args);
-    vsnprintf(buf, __MATES_STR_LENGTH__, format, args);
+    vsnprintf(buf, matesBufferSize, format, args);
     
     WriteCommand(MATES_CMD_UPDATE_TEXT_AREA);
     WriteWord(index);
     WriteString(buf);
-    res = WaitForACK();
+    res = WaitForACK(__MATES_CMD_LTIMEOUT__);
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
     free(buf);
   } else {
@@ -504,7 +488,7 @@ bool MatesController::appendToPrintArea(uint16_t index, const int8_t * buf, uint
     WriteWord(index);
     WriteWord(len);
     WriteData(_buf, len);
-    res = WaitForACK();
+    res = WaitForACK(__MATES_CMD_LTIMEOUT__);
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
     SetError(MATES_ERROR_NOT_INITIALIZED);
@@ -540,7 +524,7 @@ bool MatesController::appendToScope(uint16_t index, const int16_t * buf, uint16_
     WriteWord(index);
     WriteWord(len);
     WriteData(buf, len);
-    res = WaitForACK();
+    res = WaitForACK(__MATES_CMD_LTIMEOUT__);
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
     SetError(MATES_ERROR_NOT_INITIALIZED);
@@ -561,7 +545,7 @@ bool MatesController::updateDotMatrix(uint16_t index, const int8_t * buf, uint16
     WriteWord(index);
     WriteWord(len);
     WriteData(buf, len);
-    res = WaitForACK();
+    res = WaitForACK(__MATES_CMD_LTIMEOUT__);
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
     SetError(MATES_ERROR_NOT_INITIALIZED);
@@ -570,11 +554,11 @@ bool MatesController::updateDotMatrix(uint16_t index, const int8_t * buf, uint16
 }
 
 bool MatesController::updateDotMatrix(uint16_t index, const char * format, ...) {
-  char * buf = (char *) malloc(__MATES_STR_BFSIZE__);
+  char * buf = (char *) malloc(matesBufferSize + 1);
   va_list args;
   va_start(args, format);
   // vsprintf(buf, format, args);
-  vsnprintf(buf, __MATES_STR_LENGTH__, format, args);
+  vsnprintf(buf, matesBufferSize, format, args);
   bool res = updateDotMatrix(index, (int8_t *)buf, strlen(buf));
   free(buf);
   return res;
@@ -717,29 +701,29 @@ MatesError MatesController::getError() {
 
 void MatesController::SetError(MatesError error) {
   matesError = error;
-  if (matesErrorHandler != NULL) {
-    matesErrorHandler(error);
-  }
-  if (debugSerial == NULL) return;
-  switch (error) {
-    case MATES_ERROR_NONE:
-      debugSerial->write("Success");
-      break;
-    case MATES_ERROR_COMMAND_FAILED:
-      debugSerial->write("Failed\n");
-      break;
-    case MATES_ERROR_RESPONSE_TIMEOUT:
-      debugSerial->write("RSP Timeout\n");
-      break;
-    case MATES_ERROR_COMMAND_TIMEOUT:
-      debugSerial->write("CMD Timeout\n");
-      break;
-    case MATES_ERROR_NOT_INITIALIZED:
-      debugSerial->write('Not Ready\n');
-      break;
-    default:
-      break;
-  }
+  if (debugSerial != NULL) {
+    switch (error) {
+      case MATES_ERROR_NONE:
+        debugSerial->write("Success");
+        return;
+      case MATES_ERROR_COMMAND_FAILED:
+        debugSerial->write("Failed\n");
+        break;
+      case MATES_ERROR_RESPONSE_TIMEOUT:
+        debugSerial->write("RSP Timeout\n");
+        break;
+      case MATES_ERROR_COMMAND_TIMEOUT:
+        debugSerial->write("CMD Timeout\n");
+        break;
+      case MATES_ERROR_NOT_INITIALIZED:
+        debugSerial->write('Not Ready\n');
+        break;
+      default:
+        break;
+    }
+  };
+  if (matesErrorHandler == NULL) return;
+  matesErrorHandler(error);
 }
 
 void MatesController::WriteByte(int8_t value) {
@@ -748,50 +732,27 @@ void MatesController::WriteByte(int8_t value) {
 }
 
 void MatesController::WriteCommand(MatesCommand value) {
-  // matesSerial->write(MATES_CMD_START_BYTE);
-  // matesSerial->write(value >> 8);
-  // matesSerial->write(value);
   Frame16bit frame;
   frame.value = value;
-  // int8_t tmp = frame.bytes[0];
-  // frame.bytes[0] = frame.bytes[1];
-  // frame.bytes[1] = tmp;
   WriteByte(MATES_CMD_START_BYTE);
   WriteData(frame.bytes, 2, true);
 }
 
 void MatesController::WriteWord(int16_t value) {
-  // matesSerial->write(value >> 8);
-  // matesSerial->write(value);
   Frame16bit frame;
   frame.value = value;
-  // int8_t tmp = frame.bytes[0];
-  // frame.bytes[0] = frame.bytes[1];
-  // frame.bytes[1] = tmp;
   WriteData(frame.bytes, 2, true);
 }
 
 void MatesController::WriteLong(int32_t value) {
-  // matesSerial->write(value >> 24);
-  // matesSerial->write(value >> 16);
-  // matesSerial->write(value >> 8);
-  // matesSerial->write(value);
   Frame32bit frame;
   frame.value = value;
   WriteData(frame.bytes, 4, true);
 }
 
 void MatesController::WriteFloat(float value) {
-  // long * longPtr = (long*) &value ; // cast float to long
-  // WriteLong(*longPtr);
   FrameFloat frame;
   frame.value = value;
-  // int8_t tmp = frame.bytes[0];
-  // frame.bytes[0] = frame.bytes[3];
-  // frame.bytes[3] = tmp;
-  // tmp = frame.bytes[1];
-  // frame.bytes[1] = frame.bytes[2];
-  // frame.bytes[2] = tmp;  
   WriteData(frame.bytes, 4, true);
 }
 

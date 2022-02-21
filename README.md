@@ -83,8 +83,8 @@ This function must be used once to initialize the Serial port at the start of th
 
 | Parameters                 | Type    | Description                                                            |
 |:--------------------------:|:-------:| ---------------------------------------------------------------------- |
-| baudrate<br/>(optional)    | int32_t | Baudrate setting to be used to control the display module (default: 9600)<br/>**Note:** _This is ignored when not using a HardwareSerial to communicate with the display. In that case, the serial needs to be initialize before using this function._ |
-| resetModule<br/>(optional) | bool    | Indicates whether the module should be reset from the hardware reset pin (default: true) |
+| baudrate<br/>(optional)    | int32_t | Baudrate setting to be used to control the display module (default: 9600)<br/>**Note:** _This is ignored when not using a HardwareSerial (or SoftwareSerial for AVR devices) to communicate with the display. In that case, the serial/Stream instance needs to be initialize before using this function._ |
+| resetModule<br/>(optional) | bool    | Indicates whether the module should be reset from the hardware reset pin (default: true)<br/>**Note:** _When false, this function always returns true and simply waits for the boot timeout to pass before exiting_ |
 
 **Return:** success or failure (_boolean_)
 
@@ -120,17 +120,20 @@ The function finishes as soon as the display sends the ready signal or the wait 
 
 | Parameters                | Type     | Description                                       |
 |:-------------------------:|:--------:| ------------------------------------------------- |
-| waitPeriod<br/>(optional) | uint16_t | Timeout period to wait until the display is ready |
+| waitPeriod<br/>(optional) | uint16_t | Timeout period to wait until the display is ready (default: boot timeout) |
 
 
 **Return:** success or failure (_boolean_)
 
 
-#### Example:
+#### Example No 1:
     // Reset the display and wait for
     mates.reset();          // a period of 5 seconds (default)
+                            // (actually the current boot timeout which is 5s by default)
+                            
+#### Example No 2:
     // Reset the display and wait for
-    // mates.reset(4000);   // a period of 4 seconds
+    mates.reset(4000);   // a period of 4 seconds
 
 
 ### **softReset(waitPeriod)**
@@ -142,26 +145,29 @@ The function finishes as soon as the display sends the ready signal or the wait 
 
 | Parameters                | Type     | Description                                       |
 |:-------------------------:|:--------:| ------------------------------------------------- |
-| waitPeriod<br/>(optional) | uint16_t | Timeout period to wait until the display is ready |
+| waitPeriod<br/>(optional) | uint16_t | Timeout period to wait until the display is ready (default: boot timeout) |
 
 
 **Return:** success or failure (_boolean_)
 
 
-#### Example:
+#### Example No 1:
     // Reset the display and wait for
     mates.softReset();          // a period of 5 seconds (default)
+                                // (actually the current boot timeout which is 5s by default)
+
+#### Example No 2:
     // Reset the display and wait for
     // mates.softReset(4000);   // a period of 4 seconds
 
 
 ### **setBootTimeout(timeout)**
 
-This function can be used to set the default wait period during reset.
+This function can be used to set the wait period during reset and softReset.
 
-| Parameters  | Type     | Description                                                   |
-|:-----------:|:--------:| ------------------------------------------------------------- |
-| timeout     | uint32_t | New default timeout period to wait until the display is ready |
+| Parameters  | Type     | Description                                           |
+|:-----------:|:--------:| ----------------------------------------------------- |
+| timeout     | uint32_t | New timeout period to wait until the display is ready |
 
 
 **Return:** success or failure (_boolean_)
@@ -169,6 +175,89 @@ This function can be used to set the default wait period during reset.
 
 #### Example:
     mates.setBootTimeout(10000); // sets boot timeout to a period of 10 seconds
+
+
+### **resetBootTimeout(timeout)**
+
+This function can be used to reset the wait period during reset and softReset to the default 5 seconds.
+
+**Return:** none
+
+
+#### Example:
+    mates.resetBootTimeout(); // resets boot timeout to the default period
+
+
+### **attachErrorHandler(timeout)**
+
+This function can be used to reset the wait period during reset and softReset to the default 5 seconds.
+
+**Return:** none
+
+#### Example 1:
+    MatesController mates = MatesController(Serial);
+
+    void matesErrorHandler(MatesError error) {
+        while (true) {
+            digitalWrite(LED_BUILTIN, HIGH);
+            delay(200);
+            digitalWrite(LED_BUILTIN, LOW);
+            delay(200);
+        } // Blink builtin LED and block project execution
+        // This is not ideal but can be used to as simple error indication
+        // Errors should be handled as shown in Example 2
+    }
+
+    void setup() {
+        pinMode(LED_BUILTIN, OUTPUT);
+        digitalWrite(LED_BUILTIN, LOW);
+
+        // Sets 'matesErrorHandler' as the function for handling possible MatesError
+        mates.attachErrorHandler(matesErrorHandler); 
+        mates.begin(9600);
+
+        // do something...
+    }
+
+    void loop() {
+        // do something...
+    }
+
+#### Example 2:
+    MatesController mates = MatesController(Serial);
+
+    void matesErrorHandler(MatesError error) {
+        switch (error) {
+            case MATES_ERROR_COMMAND_FAILED:
+                // Do something when last command is invalid
+                break;
+            case MATES_ERROR_RESPONSE_TIMEOUT:
+                // Do something when the expected response from
+                // the last command wasn't received on time
+                break;
+            case MATES_ERROR_COMMAND_TIMEOUT:
+                // Do something when the expected acknowledgement from
+                // the last command wasn't received on time
+                break;
+            case MATES_ERROR_NOT_INITIALIZED:
+                // Do something when the display is not yet ready
+                break;
+            default:
+                break;
+        }
+    }
+
+    void setup() {
+        // Sets 'matesErrorHandler' as the function for handling possible MatesError
+        mates.attachErrorHandler(matesErrorHandler);
+        mates.begin(9600);
+
+        // do something...
+    }
+
+    void loop() {
+        // do something...
+    }
 
 
 ### **setBacklight(value)**
@@ -506,12 +595,12 @@ This function can be used to query the parameter (_param_) of the target widget,
 
 ### **setBufferSize(size)**
 
-This function can be used to adjust the max string buffer _size_ to be used when composing a string for a TextArea or a PrintArea. The string composition is done by [updateTextArea(index, format, ...)](#updatetextareaindex-format-) and [appendToPrintArea(index, format, ...)](#appendtoprintareaindex-format-)
+This function can be used to adjust the max string buffer _size_ to be used when composing a string for a TextArea or a PrintArea. The string composition is done by [updateTextArea(index, format, ...)](#updatetextareaindex-format-), [updateDotMatrix(index, format, ...)](#updatedotmatrixindex-format-) and [appendToPrintArea(index, format, ...)](#appendtoprintareaindex-format-)
 
 
 | Parameters | Type     | Description         |
 |:----------:|:--------:| ------------------- |
-| size       | uint16_t | The new buffer size |
+| size       | uint16_t | The new buffer size (max: 1000) |
 
 
 **Return:** success or failure (boolean)
@@ -524,7 +613,7 @@ This function can be used to adjust the max string buffer _size_ to be used when
 
 ### **clearTextArea(index)**
 
-This function can be used to clear the TextArea specified by_index_.
+This function can be used to clear the TextArea specified by _index_.
 
 
 | Parameters | Type     | Description                             |
@@ -541,7 +630,7 @@ This function can be used to clear the TextArea specified by_index_.
 
 ### **updateTextArea(index, format, ...)**
 
-This function can be used to update the contents of the TextArea specified by_index_ with the text formed by _format_ and the additional arguments.
+This function can be used to update the contents of the TextArea specified by _index_ with the text formed by _format_ and the additional arguments.
 
 
 | Parameters | Type         | Description                                                    |
@@ -562,9 +651,27 @@ This function can be used to update the contents of the TextArea specified by_in
     mates.updateTextArea(3, "Value is %d", 76); // Print value to TextArea3
 
 
+### **updateTextArea(index, str)**
+
+This function can be used to update the contents of the TextArea specified by _index_ with the String 'str'.
+
+
+| Parameters | Type         | Description                                                    |
+|:----------:|:------------:| -------------------------------------------------------------- |
+| index      | uint16_t     | The index of the target TextArea widget                        |
+| str     | String | The String to be written to the Text Area                        |
+
+**Return:** success or failure (_boolean_)
+
+
+#### Example:
+    String str = "Mates";
+    mates.updateTextArea(2, str); // Update TextArea2 to 'str'
+
+
 ### **clearPrintArea(index)**
 
-This function can be used to clear the PrintArea specified by_index_.
+This function can be used to clear the PrintArea specified by _index_.
 
 
 | Parameters | Type     | Description                              |
@@ -581,7 +688,7 @@ This function can be used to clear the PrintArea specified by_index_.
 
 ### **setPrintAreaColor(index, color)**
 
-This function can be used to set the print color (_rgb565_) used by the PrintArea specified by_index_.
+This function can be used to set the print color (_rgb565_) used by the PrintArea specified by _index_.
 
 
 | Parameters | Type     | Description                              |
@@ -599,7 +706,7 @@ This function can be used to set the print color (_rgb565_) used by the PrintAre
 
 ### **setPrintAreaColor(index, r, g, b)**
 
-This function can be used to set the print color used by the PrintArea specified by_index_. The color is determined by _r_, _g_ and _b_.
+This function can be used to set the print color used by the PrintArea specified by _index_. The color is determined by _r_, _g_ and _b_.
 
 
 | Parameters | Type     | Description                                |
@@ -619,7 +726,7 @@ This function can be used to set the print color used by the PrintArea specified
 
 ### **appendToPrintArea(index, buffer, len)**
 
-This function can be used to append a number of bytes (_len_) from the data in _buffer_ to the PrintArea specified by_index_ .
+This function can be used to append a number of bytes (_len_) from the data in _buffer_ to the PrintArea specified by _index_ .
 
 
 | Parameters | Type           | Description                               |
@@ -639,7 +746,7 @@ This function can be used to append a number of bytes (_len_) from the data in _
 
 ### **appendToPrintArea(index, format, ...)**
 
-This function can be used to append contents to the PrintArea specified by_index_ with the text formed by _format_ and the additional arguments.
+This function can be used to append contents to the PrintArea specified by _index_ with the text formed by _format_ and the additional arguments.
 
 
 | Parameters | Type         | Description                                                    |
@@ -660,9 +767,27 @@ This function can be used to append contents to the PrintArea specified by_index
     mates.appendToPrintArea(9, "Value: %d", 108); // Append value as text to PrintArea9
 
 
+### **appendToPrintArea(index, str)**
+
+This function can be used to append contents to the PrintArea specified by _index_ with the String provided.
+
+
+| Parameters | Type         | Description                                                    |
+|:----------:|:------------:| -------------------------------------------------------------- |
+| index      | uint16_t     | The index of the target Print Area widget                      |
+| str        | String       | The text to be written to the PrintArea                        |
+
+**Return:** success or failure (_boolean_)
+
+
+#### Example:
+    String str = "Mates";
+    mates.appendToPrintArea(2, str); // // Append 'str' to PrintArea2
+
+
 ### **appendToScope(index, buffer, len)**
 
-This function can be used to append a number of 16-bit values (_len_) from the data in _buffer_ to the Scope widget specified by_index_ .
+This function can be used to append a number of 16-bit values (_len_) from the data in _buffer_ to the Scope widget specified by _index_.
 
 
 | Parameters | Type            | Description                          |
@@ -682,13 +807,13 @@ This function can be used to append a number of 16-bit values (_len_) from the d
 
 ### **updateDotMatrix(index, format, ...)**
 
-This function can be used to append contents to the PrintArea specified by_index_ with the text formed by _format_ and the additional arguments.
+This function can be used to append contents to the PrintArea specified by _index_ with the text formed by _format_ and the additional arguments.
 
 
 | Parameters | Type         | Description                                                    |
 |:----------:|:------------:| -------------------------------------------------------------- |
-| index      | uint16_t     | The index of the target Print Area widget                      |
-| format     | const char * | The text to be written to the PrintArea                        |
+| index      | uint16_t     | The index of the target DotMatrix widget                       |
+| format     | const char * | The text to be written to the DotMatrix                        |
 | ...        | -            | Additional values to replace the format specifiers in _format_ |
 
 
@@ -701,6 +826,24 @@ This function can be used to append contents to the PrintArea specified by_index
 #### Example No. 2: 
     int value = 108;
     mates.updateDotMatrix(9, "Value: %d", 108); // Update DotMatrix0 to show value
+
+
+### **updateDotMatrix(index, str)**
+
+This function can be used to update the contents of the DotMatrix specified by _index_ with the String 'str'.
+
+
+| Parameters | Type         | Description                                                    |
+|:----------:|:------------:| -------------------------------------------------------------- |
+| index      | uint16_t     | The index of the target DotMatrix widget                       |
+| str        | String       | The String to be written to the DotMatrix                      |
+
+**Return:** success or failure (_boolean_)
+
+
+#### Example:
+    String str = "Mates";
+    mates.updateDotMatrix(2, str); // Update DotMatrix2 to 'str'
 
 
 ### **getButtonEventCount()**

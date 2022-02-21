@@ -28,8 +28,8 @@
 
 #define __MATES_PRT_LENGTH__                    1000 
 #define __MATES_STR_LENGTH__                    255 
-#define __MATES_STR_BFSIZE__                    (__MATES_STR_LENGTH__ + 1)
 #define __MATES_CMD_TIMEOUT__                   1000
+#define __MATES_CMD_LTIMEOUT__                  2000
 #define __MATES_BOOT_TIMEOUT__                  5000
 
 /*
