@@ -43,6 +43,7 @@ MatesController::MatesController(SoftwareSerial &serial, uint8_t resetPin, uint8
   matesSerialType = SOFTWARE_SERIAL;
   swMatesSerial = &serial;
   matesSerial = &serial;
+  matesTxDelay = 1000;
 }
 
 MatesController::MatesController(SoftwareSerial &serial, Stream &dbSerial, uint8_t resetPin, uint8_t mode) {
@@ -52,6 +53,7 @@ MatesController::MatesController(SoftwareSerial &serial, Stream &dbSerial, uint8
   swMatesSerial = &serial;
   matesSerial = &serial;
   debugSerial = &dbSerial;
+  matesTxDelay = 1000;
 }
 #endif
 
@@ -121,7 +123,7 @@ bool MatesController::begin(int32_t baudrate, bool resetModule) {
     debugSerial->print(millis() - startTime);
     debugSerial->write(" ms\n");
   }
-  matesReady = true;
+  if (!resetModule) matesReady = true;
 
   return matesReady;
 }
@@ -177,6 +179,22 @@ bool MatesController::softReset(uint16_t waitPeriod) {
   return matesReady;
 }
 
+void MatesController::setBootTimeout(uint16_t timeout) {
+  matesBootTimeout = timeout;
+}
+
+void MatesController::resetBootTimeout() {
+  matesBootTimeout = __MATES_BOOT_TIMEOUT__;
+}
+
+void MatesController::attachErrorHandler(MatesErrorHandler handler) {
+  matesErrorHandler = handler;
+}
+
+void MatesController::detachErrorHandler() {
+  matesErrorHandler = NULL;
+}
+
 bool MatesController::setBacklight(uint8_t value) {
   if (debugSerial != NULL) {
     debugSerial->write("Setting backlight to ");
@@ -191,8 +209,7 @@ bool MatesController::setBacklight(uint8_t value) {
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res;
 }
@@ -211,8 +228,7 @@ bool MatesController::setPage(uint16_t page) {
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res;
 }
@@ -226,8 +242,7 @@ int16_t MatesController::getPage() {
     WriteCommand(MATES_CMD_GET_PAGE);
     return ReadResponse();
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
     return -1;
   }
 }
@@ -249,8 +264,7 @@ bool MatesController::setWidgetValue(int16_t widget, int16_t value) {
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res;
 }
@@ -267,8 +281,7 @@ int16_t MatesController::getWidgetValue(int16_t widget) {
     WriteWord(widget);
     return ReadResponse();
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
     return -1;
   }
 }
@@ -325,8 +338,7 @@ bool MatesController::setWidgetParam(int16_t widget, int16_t param, int16_t valu
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res;
 }
@@ -346,8 +358,7 @@ int16_t MatesController::getWidgetParam(int16_t widget, int16_t param) {
     WriteWord(param);
     return ReadResponse();
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
     return -1;
   }
 }
@@ -361,7 +372,7 @@ int16_t MatesController::getWidgetParam(MatesWidget type, uint8_t index, int16_t
 }
 
 bool MatesController::setBufferSize(uint16_t size) {
-  if (size > __MATES_STRING_MAX_BUFFER_SIZE__) return false;
+  if (size > __MATES_PRT_LENGTH__) return false;
   matesBufferSize = size;
   return true;
 }
@@ -378,11 +389,10 @@ bool MatesController::clearTextArea(uint16_t index) {
     WriteCommand(MATES_CMD_UPDATE_TEXT_AREA);
     WriteWord(index);
     WriteByte(0);
-    bool res = WaitForACK();
+    res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res;
 }
@@ -396,11 +406,11 @@ bool MatesController::updateTextArea(uint16_t index, const char * format, ...) {
     
   bool res = false;
   if (matesReady) {
-    // char buf[matesBufferSize];
-    char * buf = (char *) malloc(matesBufferSize);
+    char * buf = (char *) malloc(__MATES_STR_BFSIZE__);
     va_list args;
     va_start(args, format);
-    vsprintf(buf, format, args);
+    // vsprintf(buf, format, args);
+    vsnprintf(buf, __MATES_STR_LENGTH__, format, args);
     
     WriteCommand(MATES_CMD_UPDATE_TEXT_AREA);
     WriteWord(index);
@@ -409,8 +419,7 @@ bool MatesController::updateTextArea(uint16_t index, const char * format, ...) {
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
     free(buf);
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res;
 }
@@ -433,8 +442,7 @@ bool MatesController::clearPrintArea(uint16_t index) {
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res;
 }
@@ -456,8 +464,7 @@ bool MatesController::setPrintAreaColor(uint16_t index, int16_t rgb565) {
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res; 
 }
@@ -471,13 +478,24 @@ bool MatesController::setPrintAreaColor(uint16_t index, uint8_t r, uint8_t g, ui
 }
 
 bool MatesController::appendToPrintArea(uint16_t index, const int8_t * buf, uint16_t len) {
+  int8_t * _buf = buf;
+  
+  for (uint16_t _len = len; _len > __MATES_STR_LENGTH__; _len -= __MATES_STR_LENGTH__, _buf += __MATES_STR_LENGTH__) {
+    appendToPrintArea(index, _buf, __MATES_STR_LENGTH__);
+  }
   if (debugSerial != NULL) {
     debugSerial->write("Append ");
     debugSerial->print(len);
     debugSerial->write(" bytes to PrintArea");
     // debugSerial->write("Append to PrintArea");
     debugSerial->print(index);
-    debugSerial->write("... ");
+    debugSerial->write("... \n[");
+    for (uint16_t i = 0; i < len; i++) {
+      if (i > 0) debugSerial->write(' ');
+      if (_buf[i] < 0x10) debugSerial->write('0');
+      debugSerial->print(_buf[i], HEX);
+    }
+    debugSerial->write("]");
   }
 
   bool res = false;
@@ -485,22 +503,21 @@ bool MatesController::appendToPrintArea(uint16_t index, const int8_t * buf, uint
     WriteCommand(MATES_CMD_APPEND_PRINT_AREA);
     WriteWord(index);
     WriteWord(len);
-    WriteData(buf, len);
+    WriteData(_buf, len);
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res; 
 }
 
 bool MatesController::appendToPrintArea(uint16_t index, const char * format, ...) {
-  // char buf[matesBufferSize];
-  char * buf = (char *) malloc(matesBufferSize);
+  char * buf = (char *) malloc(matesBufferSize + 1);
   va_list args;
   va_start(args, format);
-  vsprintf(buf, format, args);
+  // vsprintf(buf, format, args);
+  vsnprintf(buf, matesBufferSize, format, args);
   bool res = appendToPrintArea(index, (int8_t *)buf, strlen(buf));
   free(buf);
   return res;
@@ -510,7 +527,7 @@ bool MatesController::appendToPrintArea(uint16_t index, String str) {
   return appendToPrintArea(index, str.c_str());
 }
 
-bool MatesController::appendToScope(uint16_t index, const int16_t * buf, int16_t len) {
+bool MatesController::appendToScope(uint16_t index, const int16_t * buf, uint16_t len) {
   if (debugSerial != NULL) {
     debugSerial->write("Append to Scope");
     debugSerial->print(index);
@@ -526,8 +543,7 @@ bool MatesController::appendToScope(uint16_t index, const int16_t * buf, int16_t
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res; 
 }
@@ -548,18 +564,17 @@ bool MatesController::updateDotMatrix(uint16_t index, const int8_t * buf, uint16
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res; 
 }
 
 bool MatesController::updateDotMatrix(uint16_t index, const char * format, ...) {
-  // char buf[matesBufferSize];
-  char * buf = (char *) malloc(matesBufferSize);
+  char * buf = (char *) malloc(__MATES_STR_BFSIZE__);
   va_list args;
   va_start(args, format);
-  vsprintf(buf, format, args);
+  // vsprintf(buf, format, args);
+  vsnprintf(buf, __MATES_STR_LENGTH__, format, args);
   bool res = updateDotMatrix(index, (int8_t *)buf, strlen(buf));
   free(buf);
   return res;
@@ -577,8 +592,7 @@ uint16_t MatesController::getButtonEventCount() {
     WriteCommand(MATES_CMD_BTN_EVENT_COUNT);
     return (uint16_t) ReadResponse();
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
     return -1;
   }
 }
@@ -591,8 +605,7 @@ int16_t MatesController::getNextButtonEvent() {
     WriteCommand(MATES_CMD_NEXT_BTN_EVENT);
     return ReadResponse();
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
     return -1;
   }
 }
@@ -605,8 +618,7 @@ uint16_t MatesController::getSwipeEventCount() {
     WriteCommand(MATES_CMD_SWP_EVENT_COUNT);
     return (uint16_t) ReadResponse();
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
     return -1;
   }
 }
@@ -619,8 +631,7 @@ int16_t MatesController::getNextSwipeEvent() {
     WriteCommand(MATES_CMD_NEXT_SWP_EVENT);
     return ReadResponse();
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
     return -1;
   }
 }
@@ -638,8 +649,7 @@ bool MatesController::pinMode(int16_t pin, int16_t mode) {
     WriteWord(pin);
     WriteWord(mode);
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return matesReady;
 }
@@ -657,8 +667,7 @@ bool MatesController::digitalWrite(int16_t pin, int16_t value) {
     WriteWord(pin);
     WriteWord(value);
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return matesReady;
 }
@@ -674,8 +683,7 @@ int16_t MatesController::digitalRead(int16_t pin) {
     WriteWord(pin);
     return ReadResponse();
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
     return -1;
   }
 }
@@ -707,49 +715,113 @@ MatesError MatesController::getError() {
 // ------------------- PRIVATE FUNCTIONS ---------------------
 // -----------------------------------------------------------
 
-void MatesController::WriteCommand(MatesCommand value) {
-  matesSerial->write(MATES_CMD_START_BYTE);
-  matesSerial->write(value >> 8);
-  matesSerial->write(value);
+void MatesController::SetError(MatesError error) {
+  matesError = error;
+  if (matesErrorHandler != NULL) {
+    matesErrorHandler(error);
+  }
+  if (debugSerial == NULL) return;
+  switch (error) {
+    case MATES_ERROR_NONE:
+      debugSerial->write("Success");
+      break;
+    case MATES_ERROR_COMMAND_FAILED:
+      debugSerial->write("Failed\n");
+      break;
+    case MATES_ERROR_RESPONSE_TIMEOUT:
+      debugSerial->write("RSP Timeout\n");
+      break;
+    case MATES_ERROR_COMMAND_TIMEOUT:
+      debugSerial->write("CMD Timeout\n");
+      break;
+    case MATES_ERROR_NOT_INITIALIZED:
+      debugSerial->write('Not Ready\n');
+      break;
+    default:
+      break;
+  }
 }
 
 void MatesController::WriteByte(int8_t value) {
   matesSerial->write(value);
+  delayMicroseconds(matesTxDelay);
+}
+
+void MatesController::WriteCommand(MatesCommand value) {
+  // matesSerial->write(MATES_CMD_START_BYTE);
+  // matesSerial->write(value >> 8);
+  // matesSerial->write(value);
+  Frame16bit frame;
+  frame.value = value;
+  // int8_t tmp = frame.bytes[0];
+  // frame.bytes[0] = frame.bytes[1];
+  // frame.bytes[1] = tmp;
+  WriteByte(MATES_CMD_START_BYTE);
+  WriteData(frame.bytes, 2, true);
 }
 
 void MatesController::WriteWord(int16_t value) {
-  matesSerial->write(value >> 8);
-  matesSerial->write(value);
+  // matesSerial->write(value >> 8);
+  // matesSerial->write(value);
+  Frame16bit frame;
+  frame.value = value;
+  // int8_t tmp = frame.bytes[0];
+  // frame.bytes[0] = frame.bytes[1];
+  // frame.bytes[1] = tmp;
+  WriteData(frame.bytes, 2, true);
 }
 
 void MatesController::WriteLong(int32_t value) {
-  matesSerial->write(value >> 24);
-  matesSerial->write(value >> 16);
-  matesSerial->write(value >> 8);
-  matesSerial->write(value);
+  // matesSerial->write(value >> 24);
+  // matesSerial->write(value >> 16);
+  // matesSerial->write(value >> 8);
+  // matesSerial->write(value);
+  Frame32bit frame;
+  frame.value = value;
+  WriteData(frame.bytes, 4, true);
 }
 
 void MatesController::WriteFloat(float value) {
-  long * longPtr = (long*) &value ; // cast float to long
-  WriteLong(*longPtr);
+  // long * longPtr = (long*) &value ; // cast float to long
+  // WriteLong(*longPtr);
+  FrameFloat frame;
+  frame.value = value;
+  // int8_t tmp = frame.bytes[0];
+  // frame.bytes[0] = frame.bytes[3];
+  // frame.bytes[3] = tmp;
+  // tmp = frame.bytes[1];
+  // frame.bytes[1] = frame.bytes[2];
+  // frame.bytes[2] = tmp;  
+  WriteData(frame.bytes, 4, true);
 }
 
 void MatesController::WriteString(const char * str) {
   do {
     matesSerial->write(*str);
+    delayMicroseconds(matesTxDelay);
   } while (*str++);
 }
 
-void MatesController::WriteData(const int8_t * buf, int len) {
-  for (int i = 0; i < len; i++) {
+void MatesController::WriteData(const int8_t * buf, uint16_t len, bool invert) {
+  if (invert) {
+    for (uint16_t i = len; i > 0; i--) {
+      matesSerial->write(buf[i - 1]);
+      delayMicroseconds(matesTxDelay);
+    }
+    return;
+  }
+  for (uint16_t i = 0; i < len; i++) {
     matesSerial->write(buf[i]);
+    delayMicroseconds(matesTxDelay);
   }
 }
 
-void MatesController::WriteData(const int16_t * buf, int len) {
-  for (int i = 0; i < len; i++) {
+void MatesController::WriteData(const int16_t * buf, uint16_t len) {
+  for (uint16_t i = 0; i < len; i++) {
     matesSerial->write(buf[i] >> 8);
+    delayMicroseconds(matesTxDelay);
     matesSerial->write(buf[i]);
+    delayMicroseconds(matesTxDelay);
   }
 }
 
@@ -760,12 +832,11 @@ int16_t MatesController::ReadWord() {
 }
 
 int16_t MatesController::ReadResponse(uint16_t timeout) {
-  if (!WaitForACK()) return -1;
+  if (!WaitForACK(timeout)) return -1;
   unsigned long startTime = millis();
   while (matesSerial->available() < 2) {
     if (millis() - startTime >= timeout) {
-      if (debugSerial != NULL) debugSerial->write("RSP Timeout\n");
-      matesError = MATES_ERROR_RESPONSE_TIMEOUT;
+      SetError(MATES_ERROR_RESPONSE_TIMEOUT);
       return -1;
     }
   }
@@ -777,15 +848,13 @@ int16_t MatesController::ReadResponse(uint16_t timeout) {
 bool MatesController::WaitForACK(uint16_t timeout) {
   unsigned long startTime = millis();
   while (matesSerial->available() < 1) {
-    if (millis() - startTime >= timeout) {
-      matesError = MATES_ERROR_COMMAND_TIMEOUT;
-      if (debugSerial != NULL) debugSerial->write("CMD Timeout\n");
+    if ((timeout > 0) && (millis() - startTime >= timeout)) {
+      SetError(MATES_ERROR_COMMAND_TIMEOUT);
       return false;
     }
   }
   bool res = (matesSerial->read()) == 0x06;
-  matesError = res ? MATES_ERROR_NONE : MATES_ERROR_COMMAND_FAILED;
-  if (debugSerial != NULL) debugSerial->write(res ? "Success" : "Failed\n");
+  SetError(res ? MATES_ERROR_NONE : MATES_ERROR_COMMAND_FAILED);
   return res;
 }
 
@@ -806,8 +875,7 @@ bool MatesController::_setWidgetValue(int16_t widget, int32_t value) {
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res;
 }
@@ -829,8 +897,7 @@ bool MatesController::_setWidgetValue(int16_t widget, float value) {
     res = WaitForACK();
     if ((debugSerial != NULL) && res) debugSerial->write('\n');
   } else {
-    matesError = MATES_ERROR_NOT_INITIALIZED;
-    if (debugSerial != NULL) debugSerial->write('Not Ready\n');
+    SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res;
 }
