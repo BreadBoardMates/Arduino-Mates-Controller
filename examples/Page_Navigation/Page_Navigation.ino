@@ -19,7 +19,7 @@ void Day_and_Time_Animation(void) {
   uint8_t lastDay = 1;
   uint8_t day = 1;
   int16_t hrs = 23;
-  int16_t min = 59;
+  int16_t mnt = 59;
   int16_t sec = 47;
 
   mates.updateTextArea(0, daysOfWeek[day]);
@@ -28,7 +28,7 @@ void Day_and_Time_Animation(void) {
   unsigned long lastUpdate = millis() - 1000; // Ensures first write
 
   // stop at Day 2, Tuesday, 00:00:0  7
-  while (day != 2 || hrs != 0 || min != 0 || sec != 7) {
+  while (day != 2 || hrs != 0 || mnt != 0 || sec != 7) {
 
     if (millis() - lastUpdate >= 1000) {
 
@@ -37,10 +37,10 @@ void Day_and_Time_Animation(void) {
       sec++;
       if (sec == 60) {
         sec = 0;
-        min++;
+        mnt++;
       }
-      if (min == 60) {
-        min = 0;
+      if (mnt == 60) {
+        mnt = 0;
         hrs++;
       }
       if (hrs == 24) {
@@ -50,10 +50,10 @@ void Day_and_Time_Animation(void) {
       day %= 7;
 
       // mates.setWidgetValue(MATES_LED_DIGITS, 0, hrs);
-      // mates.setWidgetValue(MATES_LED_DIGITS, 1, min);
+      // mates.setWidgetValue(MATES_LED_DIGITS, 1, mnt);
       // mates.setWidgetValue(MATES_LED_DIGITS, 2, sec);
       mates.setLedDigitsValue(0, hrs);
-      mates.setLedDigitsValue(1, min);
+      mates.setLedDigitsValue(1, mnt);
       mates.setLedDigitsValue(2, sec);
       if (lastDay != day) {
         mates.updateTextArea(0, daysOfWeek[day]);

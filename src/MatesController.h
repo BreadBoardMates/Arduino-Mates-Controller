@@ -106,6 +106,7 @@ class MatesController {
     // HERE ARE THE FUNCTIONS AVAILABLE TO THE USER
 
     bool begin(int32_t baudrate = 9600, bool resetModule = true);
+    bool sync(bool resetToPage0 = false, uint16_t waitPeriod = 0);
     bool reset(uint16_t waitPeriod = 0);
     bool softReset(uint16_t waitPeriod = 0);
     void setBootTimeout(uint16_t timeout);
@@ -205,7 +206,7 @@ class MatesController {
     AltSoftSerial  * asMatesSerial = NULL;
 #endif
 
-    void SetError(MatesError error);
+    void SetError(MatesError error, bool debugMsgs = true);
     void WriteCommand(MatesCommand value);
     void WriteByte(int8_t value);
     void WriteWord(int16_t value);
@@ -215,9 +216,13 @@ class MatesController {
     void WriteData(const int8_t * buf, uint16_t len, bool invert = false);
     void WriteData(const int16_t * buf, uint16_t len);
 
-    bool WaitForACK(uint16_t timeout = __MATES_CMD_TIMEOUT__);
     int16_t ReadWord();
-    int16_t ReadResponse(uint16_t timeout = __MATES_CMD_TIMEOUT__);
+    bool WaitForACK(uint16_t timeout = __MATES_CMD_TIMEOUT__, bool debugMsgs = true);
+    int16_t ReadResponse(uint16_t timeout = __MATES_CMD_TIMEOUT__, bool debugMsgs = true);
+
+    // Page Support Functions
+    int16_t _getPage(bool force = false, bool debugMsgs = true);
+    bool _setPage(uint16_t page, bool debugMsgs = true);
 
     // Widget Support Functions
     bool _setWidgetValue(int16_t widget, int32_t value);

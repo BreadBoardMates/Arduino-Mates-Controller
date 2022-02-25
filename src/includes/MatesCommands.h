@@ -23,7 +23,7 @@ typedef enum MatesCommand {
   MATES_CMD_NEXT_SWP_EVENT = 0x0010,
   MATES_CMD_UPDATE_TEXT_AREA = 0xFFFF,
   MATES_CMD_APPEND_PRINT_AREA = 0xFFFE,
-  // MATES_CMD_PRINT_STRING = 0xFFFD, // not being utilized, might be replaced in the future
+  // MATES_CMD_SCREENSHOT = 0xFFFD, // not being utilized by the library
   MATES_CMD_SET_WIDGET_32VAL = 0xFFFC,
   MATES_CMD_APPEND_SCOPE_DATA = 0xFFFB,
   MATES_CMD_UPDATE_DOT_MATRIX = 0xFFFA

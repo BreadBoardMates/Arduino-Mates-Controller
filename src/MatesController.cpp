@@ -81,7 +81,7 @@ MatesController::MatesController(AltSoftSerial &serial, Stream &dbSerial, uint8_
 bool MatesController::begin(int32_t baudrate, bool resetModule) {
 
   if (debugSerial != NULL) {
-    debugSerial->write("Initializing Serial UART @");
+    debugSerial->write("Initializing Mates Serial UART @");
     debugSerial->println(baudrate);
   } 
 
@@ -107,8 +107,53 @@ bool MatesController::begin(int32_t baudrate, bool resetModule) {
       return false;
   }
 
-  return resetModule ? reset() : softReset();
+  return resetModule ? reset() : sync(true);
 
+}
+
+bool MatesController::sync(bool resetToPage0, uint16_t waitPeriod) {
+  int16_t page = -1;
+  
+  uint16_t timeout = (waitPeriod == 0) ? matesBootTimeout : waitPeriod;
+  
+  if (debugSerial != NULL) {
+    debugSerial->write("Synchronizing");
+  }
+  
+  unsigned long startTime = millis();
+
+  do {
+    if ((timeout > 0) && (millis() - startTime >= timeout)) {
+      SetError(MATES_ERROR_SYNC_TIMEOUT);
+      return false;
+    }
+    if (debugSerial != NULL) {
+      debugSerial->write('.');
+    }
+    page = _getPage(true, false);
+    // delay(100);
+  } while (page == -1);
+
+  delay(100);
+  if (debugSerial != NULL) {
+    debugSerial->write(' ');
+  }
+
+  while (matesSerial->available() > 0) {
+    matesSerial->read();
+  }
+
+  page = _getPage(true, false);
+  matesReady = page != -1;
+  if (matesReady && resetToPage0) {
+    matesReady = _setPage(0, false);
+  }
+  SetError(matesReady ? MATES_ERROR_NONE : MATES_ERROR_SYNC_ERROR);
+
+  if ((debugSerial != NULL) && matesReady) {
+    debugSerial->write('\n');
+  }  
+  return matesReady;
 }
 
 bool MatesController::reset(uint16_t waitPeriod) {
@@ -155,7 +200,7 @@ bool MatesController::softReset(uint16_t waitPeriod) {
   matesReady = WaitForACK((waitPeriod == 0) ? matesBootTimeout : waitPeriod);
 
   if (debugSerial != NULL) {
-    debugSerial->write(matesReady ? "Done after " : "Timed out after ");
+    debugSerial->write(matesReady ? "\nDone after " : "\nTimed out after ");
     debugSerial->print(millis() - startTime);
     debugSerial->write(" ms\n");
   }
@@ -204,15 +249,18 @@ bool MatesController::setPage(uint16_t page) {
     debugSerial->print(page);
     debugSerial->write("... ");    
   }
+  return _setPage(page);
+}
 
+bool MatesController::_setPage(uint16_t page, bool debugMsgs) {
   bool res = false;
   if (matesReady) {
     WriteCommand(MATES_CMD_SET_PAGE);
     WriteWord((int16_t)page);
-    res = WaitForACK();
-    if ((debugSerial != NULL) && res) debugSerial->write('\n');
+    res = WaitForACK(__MATES_CMD_TIMEOUT__, debugMsgs);
+    if ((debugSerial != NULL) && res && debugMsgs) debugSerial->write('\n');
   } else {
-    SetError(MATES_ERROR_NOT_INITIALIZED);
+    SetError(MATES_ERROR_NOT_INITIALIZED, debugMsgs);
   }
   return res;
 }
@@ -220,15 +268,19 @@ bool MatesController::setPage(uint16_t page) {
 int16_t MatesController::getPage() {
   if (debugSerial != NULL) {
     debugSerial->write("Query active page... ");
-  }
+  }  
+  return _getPage();
+}
 
-  if (matesReady) {
+int16_t MatesController::_getPage(bool force, bool debugMsgs) {
+  int16_t page = -1;
+  if (matesReady || force) {
     WriteCommand(MATES_CMD_GET_PAGE);
-    return ReadResponse();
+    page = ReadResponse(__MATES_CMD_TIMEOUT__, debugMsgs);
   } else {
-    SetError(MATES_ERROR_NOT_INITIALIZED);
-    return -1;
+    SetError(MATES_ERROR_NOT_INITIALIZED, debugMsgs);
   }
+  return page;
 }
 
 bool MatesController::setWidgetValue(int16_t widget, int16_t value) {
@@ -508,7 +560,7 @@ bool MatesController::appendToPrintArea(uint16_t index, const char * format, ...
 }
 
 bool MatesController::appendToPrintArea(uint16_t index, String str) {
-  return appendToPrintArea(index, str.c_str());
+  return appendToPrintArea(index, (int8_t *) (str.c_str()), str.length());
 }
 
 bool MatesController::appendToScope(uint16_t index, const int16_t * buf, uint16_t len) {
@@ -565,7 +617,7 @@ bool MatesController::updateDotMatrix(uint16_t index, const char * format, ...) 
 }
 
 bool MatesController::updateDotMatrix(uint16_t index, String str) {
-  return updateDotMatrix(index, str.c_str());
+  return updateDotMatrix(index, (int8_t *) (str.c_str()), str.length());
 }
 
 uint16_t MatesController::getButtonEventCount() {
@@ -699,12 +751,12 @@ MatesError MatesController::getError() {
 // ------------------- PRIVATE FUNCTIONS ---------------------
 // -----------------------------------------------------------
 
-void MatesController::SetError(MatesError error) {
+void MatesController::SetError(MatesError error, bool debugMsgs) {
   matesError = error;
-  if (debugSerial != NULL) {
+  if ((debugSerial != NULL) && debugMsgs) {
     switch (error) {
       case MATES_ERROR_NONE:
-        debugSerial->write("Success");
+        debugSerial->write("Success... ");
         return;
       case MATES_ERROR_COMMAND_FAILED:
         debugSerial->write("Failed\n");
@@ -718,6 +770,12 @@ void MatesController::SetError(MatesError error) {
       case MATES_ERROR_NOT_INITIALIZED:
         debugSerial->write('Not Ready\n');
         break;
+      case MATES_ERROR_SYNC_TIMEOUT:
+        debugSerial->write("SYNC Timeout\n");
+        break;
+      case MATES_ERROR_SYNC_ERROR:
+        debugSerial->write('SYNC Error\n');
+        break;        
       default:
         break;
     }
@@ -792,30 +850,30 @@ int16_t MatesController::ReadWord() {
   return value;
 }
 
-int16_t MatesController::ReadResponse(uint16_t timeout) {
-  if (!WaitForACK(timeout)) return -1;
+int16_t MatesController::ReadResponse(uint16_t timeout, bool debugMsgs) {
+  if (!WaitForACK(timeout, debugMsgs)) return -1;
   unsigned long startTime = millis();
   while (matesSerial->available() < 2) {
     if (millis() - startTime >= timeout) {
-      SetError(MATES_ERROR_RESPONSE_TIMEOUT);
+      SetError(MATES_ERROR_RESPONSE_TIMEOUT, debugMsgs);
       return -1;
     }
   }
   int16_t res = ReadWord();
-  if (debugSerial != NULL) debugSerial->println(res);
+  if ((debugSerial != NULL) && debugMsgs) debugSerial->println(res);
   return res;
 }
 
-bool MatesController::WaitForACK(uint16_t timeout) {
+bool MatesController::WaitForACK(uint16_t timeout, bool debugMsgs) {
   unsigned long startTime = millis();
   while (matesSerial->available() < 1) {
     if ((timeout > 0) && (millis() - startTime >= timeout)) {
-      SetError(MATES_ERROR_COMMAND_TIMEOUT);
+      SetError(MATES_ERROR_COMMAND_TIMEOUT, debugMsgs);
       return false;
     }
   }
   bool res = (matesSerial->read()) == 0x06;
-  SetError(res ? MATES_ERROR_NONE : MATES_ERROR_COMMAND_FAILED);
+  SetError(res ? MATES_ERROR_NONE : MATES_ERROR_COMMAND_FAILED, debugMsgs);
   return res;
 }
 
