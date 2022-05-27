@@ -17,8 +17,14 @@ MatesError	KEYWORD1
 ########################################
 
 begin	KEYWORD2
+isReady	KEYWORD2
+sync	KEYWORD2
 reset	KEYWORD2
 softReset	KEYWORD2
+setBootTimeout	KEYWORD2
+resetBootTimeout	KEYWORD2
+attachErrorHandler	KEYWORD2
+detachErrorHandler	KEYWORD2
 setBacklight	KEYWORD2
 setPage	KEYWORD2
 getPage	KEYWORD2
@@ -32,6 +38,7 @@ setLedDigitsValue	KEYWORD2
 setSpectrumValue	KEYWORD2
 setLedSpectrumValue	KEYWORD2
 setMediaSpectrumValue	KEYWORD2
+setMediaColorLedValue	KEYWORD2
 setWidgetParam	KEYWORD2
 getWidgetParam	KEYWORD2
 setWidgetParam	KEYWORD2
@@ -39,17 +46,23 @@ getWidgetParam	KEYWORD2
 setBufferSize	KEYWORD2
 clearTextArea	KEYWORD2
 updateTextArea	KEYWORD2
+updateTextArea	KEYWORD2
 clearPrintArea	KEYWORD2
 setPrintAreaColor	KEYWORD2
 setPrintAreaColor	KEYWORD2
 appendToPrintArea	KEYWORD2
 appendToPrintArea	KEYWORD2
+appendToPrintArea	KEYWORD2
 appendToScope	KEYWORD2
+updateDotMatrix	KEYWORD2
 updateDotMatrix	KEYWORD2
 getButtonEventCount	KEYWORD2
 getNextButtonEvent	KEYWORD2
 getSwipeEventCount	KEYWORD2
 getNextSwipeEvent	KEYWORD2
+setPinMode	KEYWORD2
+setPinValue	KEYWORD2
+getPinValue	KEYWORD2
 getVersion	KEYWORD2
 getCompatibility	KEYWORD2
 printVersion	KEYWORD2
@@ -85,6 +98,8 @@ MATES_ERROR_COMMAND_FAILED	LITERAL1
 MATES_ERROR_COMMAND_TIMEOUT	LITERAL1
 MATES_ERROR_RESPONSE_TIMEOUT	LITERAL1
 MATES_ERROR_NOT_INITIALIZED	LITERAL1
+MATES_ERROR_SYNC_TIMEOUT    LITERAL1
+MATES_ERROR_SYNC_ERROR  LITERAL1
 
 ########################################
 # Widgets (LITERAL1)

@@ -31,6 +31,7 @@
 #define __MATES_CMD_TIMEOUT__                   1000
 #define __MATES_CMD_LTIMEOUT__                  2000
 #define __MATES_BOOT_TIMEOUT__                  5000
+#define __MATES_RESET_DURATION__                200
 
 /*
  * RELEASE NOTES
@@ -54,6 +55,8 @@
  *      Added void attachErrorHandler(MatesErrorHandler handler);
  *      Added void detachErrorHandler();
  *      Fixed print area issue when sending long strings
+ *   1.0.5: May 27, 2022
+ *      Added int16_t setMediaColorLedValue(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
  */
 
 typedef void (*MatesErrorHandler) (MatesError);
@@ -106,6 +109,7 @@ class MatesController {
     // HERE ARE THE FUNCTIONS AVAILABLE TO THE USER
 
     bool begin(int32_t baudrate = 9600, bool resetModule = true);
+    bool isReady();
     bool sync(bool resetToPage0 = false, uint16_t waitPeriod = 0);
     bool reset(uint16_t waitPeriod = 0);
     bool softReset(uint16_t waitPeriod = 0);
@@ -117,7 +121,7 @@ class MatesController {
     // Non-widget functions
     bool setBacklight(uint8_t value);
     bool setPage(uint16_t page);
-    int16_t getPage();
+    uint16_t getPage();
 
     // Common widget functions
     bool setWidgetValue(int16_t widget, int16_t value);
@@ -132,6 +136,7 @@ class MatesController {
     bool setSpectrumValue(int16_t widget, uint8_t gaugeIndex, uint8_t value);
     bool setLedSpectrumValue(uint8_t index, uint8_t gaugeIndex, uint8_t value);
     bool setMediaSpectrumValue(uint8_t index, uint8_t gaugeIndex, uint8_t value);
+    bool setMediaColorLedValue(uint8_t index, uint8_t r, uint8_t g, uint8_t b);
 
     // Non-Image (GCI) common widget functions
     bool setWidgetParam(int16_t widget, int16_t param, int16_t value);
@@ -139,7 +144,7 @@ class MatesController {
     bool setWidgetParam(MatesWidget type, uint8_t index, int16_t param, int16_t value);
     int16_t getWidgetParam(MatesWidget type, uint8_t index, int16_t param);
 
-    // PrintArea support functions
+    // PrintArea, TextArea and DotMatrix support functions
     bool setBufferSize(uint16_t size);
 
     // TextArea functions    
@@ -151,7 +156,7 @@ class MatesController {
     bool clearPrintArea(uint16_t index);
     bool setPrintAreaColor(uint16_t index, int16_t rgb565);
     bool setPrintAreaColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b);
-    bool appendToPrintArea(uint16_t index, const int8_t * buf, uint16_t len);
+    bool appendToPrintArea(uint16_t index, int8_t * buf, uint16_t len);
     bool appendToPrintArea(uint16_t index, const char * format, ...);
     bool appendToPrintArea(uint16_t index, String str);
 
@@ -171,9 +176,9 @@ class MatesController {
     int16_t getNextSwipeEvent();
 
     // GPIO functions
-    bool pinMode(int16_t pin, int16_t mode);
-    bool digitalWrite(int16_t pin, int16_t value);
-    int16_t digitalRead(int16_t pin);
+    bool setPinMode(int16_t pin, int16_t mode);
+    bool setPinValue(int16_t pin, int16_t value);
+    int16_t getPinValue(int16_t pin);
 
     // Utility functions
     String getVersion();
@@ -219,6 +224,9 @@ class MatesController {
     int16_t ReadWord();
     bool WaitForACK(uint16_t timeout = __MATES_CMD_TIMEOUT__, bool debugMsgs = true);
     int16_t ReadResponse(uint16_t timeout = __MATES_CMD_TIMEOUT__, bool debugMsgs = true);
+
+    // Color Support Functions
+    int16_t getColor565FromRGB(uint8_t r, uint8_t g, uint8_t b);
 
     // Page Support Functions
     int16_t _getPage(bool force = false, bool debugMsgs = true);

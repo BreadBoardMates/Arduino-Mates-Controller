@@ -14,7 +14,7 @@ This section serves to give brief discussion about the constructor and functions
 
 ### **MatesController(serial, resetPin, mode)**
 
-This is the main constructor for the library. It creates a unique instance and sets the specified display serial port and reset pin.
+This is the main constructor for the library. It creates a unique instance and sets the specified display serial port and reset pin. If not using a HardwareSerial (or SoftwareSerial for AVR devices), the Serial stream needs to be initialized manually before running the [begin(baudrate, resetModule)](#beginbaudrate-resetmodule) function.
 
 
 | Parameters              | Type    | Description                                                            |
@@ -48,7 +48,7 @@ This is the main constructor for the library. It creates a unique instance and s
 
 ### **MatesController(serial, dbSerial, resetPin, mode)**
 
-This is an alternative constructor for the library. It creates a unique instance and sets the specified display serial port, debug serial and reset pin.
+This is an alternative constructor for the library. It creates a unique instance and sets the specified display serial port, debug serial and reset pin. If not using a HardwareSerial (or SoftwareSerial for AVR devices), the Serial stream needs to be initialized manually before running the [begin(baudrate, resetModule)](#beginbaudrate-resetmodule) function.
 
 
 | Parameters              | Type    | Description                                                            |
@@ -78,7 +78,7 @@ This is an alternative constructor for the library. It creates a unique instance
 
 ### **begin(baudrate, resetModule)**
 
-This function must be used once to initialize the Serial port at the start of the Arduino application.
+This function must be used once to initialize the Serial port at the start of the Arduino application and to reset or synchronize with the display.
 
 
 | Parameters                 | Type    | Description                                                            |
@@ -101,19 +101,70 @@ This function must be used once to initialize the Serial port at the start of th
     // Initializes display serial port with 19200 baud and skips reset
     mates.begin(19200, false);
 
-**Return:** success or failure (_boolean_)
-
-
 **Note 1:** _Ensure that the baudrate matches the baudrate setting of the Mates Studio Commander/Architect project_
 
 **Note 2:** _If a debug serial port is specified, it should be initialized manually before running the begin() function of this library._
 
-**Note 3:** _If not using reset, users needs to be aware of the boot timing of the module. This should be around 3-5 seconds or more depending on the project after power on._
+**Note 3:** _If not using reset, users needs to be aware of the boot timing of the module. This should be around 3-5 seconds or more depending on the project after power on. If more time is needed to sync, set a higher boot timeout using [setBootTimeout(timeout)](#setboottimeouttimeout)_
 
+
+### **isReady()**
+
+This function can be used to determine if the module is in sync with the Arduino host.
+
+**Return:** sync status (_boolean_)
+
+#### Example: 
+    // Check if the module is in sync
+    if (mates.isReady()) {
+        // Write to or read from widgets
+    } else {
+        mates.sync(); // Try to resync with the module
+    }
+
+
+### **sync(resetToPage0, waitPeriod)**
+
+This function can be used to establish synchronization between the BBM module and the Arduino compatible host.
+
+| Parameters                | Type     | Description                                       |
+|:-------------------------:|:--------:| ------------------------------------------------- |
+| resetToPage0              | bool     | Indicates whether to go to Page0 after a successful synchronization (default: true) |
+| waitPeriod<br/>(optional) | uint16_t | Timeout period to wait until the display is ready (default: boot timeout) |
+
+
+**Return:** success or failure (_boolean_)
+
+
+#### Example No. 1: 
+    // Attempts to synchronize with the display
+    if (mates.sync()) {
+        // Do something if synchronization was successful
+    } else {
+        // Do something if synchronization failed
+    }
+
+#### Example No. 2: 
+    // Attempts to synchronize with the display
+    if (mates.sync(true)) {
+        // Do something if synchronization was successful
+        // and project returned to Page0
+    } else {
+        // Do something if synchronization failed
+    }
+
+#### Example No. 3: 
+    // Attempts to synchronize with the display with a timeout of 10000
+    if (mates.sync(true, 10000)) {
+        // Do something if synchronization was successful
+        // and project returned to Page0
+    } else {
+        // Do something if synchronization failed
+    }
 
 ### **reset(waitPeriod)**
 
-This function can be used to reset the display by sending a reset pulse from the reset pin specified through the contructor. The default wait period is 5 seconds (5000 ms).
+This function can be used to reset the display by sending a reset pulse from the reset pin specified through the contructor. The default wait period is 5 seconds (5000 ms) or as specified by [setBootTimeout(timeout)](#setboottimeouttimeout).
 
 The function finishes as soon as the display sends the ready signal or the wait period passes.
 
@@ -138,7 +189,7 @@ The function finishes as soon as the display sends the ready signal or the wait 
 
 ### **softReset(waitPeriod)**
 
-This function can be used to reset the display by sending a reset command. The default wait period is 5 seconds (5000 ms).
+This function can be used to reset the display by sending a reset command. The default wait period is 5 seconds (5000 ms) or as specified by [setBootTimeout(timeout)](#setboottimeouttimeout).
 
 The function finishes as soon as the display sends the ready signal or the wait period passes.
 
@@ -158,7 +209,7 @@ The function finishes as soon as the display sends the ready signal or the wait 
 
 #### Example No 2:
     // Reset the display and wait for
-    // mates.softReset(4000);   // a period of 4 seconds
+    mates.softReset(4000);      // a period of 4 seconds
 
 
 ### **setBootTimeout(timeout)**
@@ -272,9 +323,8 @@ This function can be used to set the backlight level to the _value_ specified.
 
 **Return:** success or failure (_boolean_)
 
-
 #### Example: 
-    mates.setPage(1); // Navigate to Page1
+    mates.setBacklight(7); // Set backlight value to 7
 
 
 ### **setPage(page)**
@@ -322,7 +372,6 @@ This function can be used to set the 16-bit integer _value_ of the specified _wi
 
 #### Example: 
     mates.setWidgetValue(MediaGaugeB0, 50); // Set value of MediaGaugeB0 to 50
-    // Note: The ID of MediaGaugeB0 can be copied or exported from Mates Studio
     
 **Note:** _This function is not applicable to **Int32** and **Float** LedDigits_
 
@@ -342,14 +391,13 @@ This function can be used to query the specified _widget_'s value.
 
 #### Example: 
     int16_t widgetVal = mates.getWidgetValue(MediaLed4); // Query the current value of MediaLed4
-    // Note: The ID of MediaLed4 can be copied or exported from Mates Studio
 
 **Note:** _This function is not applicable to **Int32** and **Float** LedDigits_
 
 
 ### **setWidgetValue(type, index, value)**
 
-This function can be used to set the 16-bit integer _value_ of the specified _widget_
+This function can be used to set the 16-bit integer _value_ of the widget specified by _type_ and _index_.
 
 
 | Parameters | Type        | Description                    |
@@ -399,7 +447,7 @@ This function can be used to set the 16-bit integer _value_ of the LedDigits spe
 
 | Parameters | Type    | Description                       |
 |:----------:|:-------:| --------------------------------- |
-| index      | int8_t  | The index of the target LedDigits |
+| index      | uint8_t | The index of the target LedDigits |
 | value      | int16_t | The new value for the LedDigits   |
 
 
@@ -419,7 +467,7 @@ This function can be used to set the 32-bit integer _value_ of the LedDigits spe
 
 | Parameters | Type    | Description                       |
 |:----------:|:-------:| --------------------------------- |
-| index      | int8_t  | The index of the target LedDigits |
+| index      | uint8_t | The index of the target LedDigits |
 | value      | int32_t | The new value for the LedDigits   |
 
 
@@ -436,10 +484,10 @@ This function can be used to set the 32-bit integer _value_ of the LedDigits spe
 
 This function can be used to set the float _value_ of the LedDigits specified by _index_.
 
-| Parameters | Type   | Description                       |
-|:----------:|:------:| --------------------------------- |
-| index      | int8_t | The index of the target LedDigits |
-| value      | float  | The new value for the LedDigits   |
+| Parameters | Type    | Description                       |
+|:----------:|:-------:| --------------------------------- |
+| index      | uint8_t | The index of the target LedDigits |
+| value      | float   | The new value for the LedDigits   |
 
 **Return:** success or failure (_boolean_)
 
@@ -458,8 +506,8 @@ This function can be used to set the _value_ of a specified gauge index of the s
 | Parameters | Type        | Description                                   |
 |:----------:|:-----------:| --------------------------------------------- |
 | widget     | int16_t     | The ID of the target spectrum widget          |
-| gaugeIndex | int8_t      | The gauge index of the target spectrum widget |
-| value      | int16_t     | The new value for the widget                  |
+| gaugeIndex | uint8_t     | The gauge index of the target spectrum widget |
+| value      | uint8_t     | The new value for the widget                  |
 
 
 **Return:** success or failure (_boolean_)
@@ -471,6 +519,7 @@ This function can be used to set the _value_ of a specified gauge index of the s
 
 **Note:** _This function is only applicable for LedSpectrum and MediaSpectrum_
 
+
 ### **setLedSpectrumValue(index, gaugeIndex, value)**
 
 This function can be used to set the _value_ of a specified _gaugeIndex_ of the Led Spectrum widget determined by _index_.
@@ -478,9 +527,9 @@ This function can be used to set the _value_ of a specified _gaugeIndex_ of the 
 
 | Parameters | Type        | Description                                       |
 |:----------:|:-----------:| ------------------------------------------------- |
-| index      | int8_t      | The index of the target Led Spectrum widget       |
-| gaugeIndex | int8_t      | The gauge index of the target Led Spectrum widget |
-| value      | int16_t     | The new value for the column/row of the widget    |
+| index      | uint8_t     | The index of the target Led Spectrum widget       |
+| gaugeIndex | uint8_t     | The gauge index of the target Led Spectrum widget |
+| value      | uint8_t     | The new value for the column/row of the widget    |
 
 
 **Return:** success or failure (_boolean_)
@@ -498,9 +547,9 @@ This function can be used to set the _value_ of a specified _gaugeIndex_ of the 
 
 | Parameters | Type        | Description                                       |
 |:----------:|:-----------:| ------------------------------------------------- |
-| index      | int8_t      | The index of the target Led Spectrum widget       |
-| gaugeIndex | int8_t      | The gauge index of the target Led Spectrum widget |
-| value      | int16_t     | The new value for the column/row of the widget    |
+| index      | uint8_t     | The index of the target Led Spectrum widget       |
+| gaugeIndex | uint8_t     | The gauge index of the target Led Spectrum widget |
+| value      | uint8_t     | The new value for the column/row of the widget    |
 
 
 **Return:** success or failure (_boolean_)
@@ -509,6 +558,28 @@ This function can be used to set the _value_ of a specified _gaugeIndex_ of the 
 #### Example: 
     mates.setMediaSpectrumValue(4, 3, 48);
     // Set value of gauge index 3 of MediaSpectrum4 to 48
+
+
+### **setMediaColorLedValue(index, r, g, b)**
+
+This function can be used to set the 32-bit integer _value_ of the LedDigits specified by _index_.
+
+
+| Parameters | Type    | Description                                               |
+|:----------:|:-------:| --------------------------------------------------------- |
+| index      | uint8_t | The index of the target MediaColorLed                     |
+| r          | uint8_t | The red component of the new color of the MediaColorLed   |
+| g          | uint8_t | The green component of the new color of the MediaColorLed |
+| b          | uint8_t | The blue component of the new color of the MediaColorLed  |
+
+
+**Return:** success or failure (_boolean_)
+
+
+#### Example: 
+    mates.setMediaColorLedValue(3, 255, 0, 0); // Set value of MediaColorLed3 to RED
+
+**Note:** _This function is only applicable for MediaColorLeds_
 
 
 ### **setWidgetParam(widget, param, value)**
@@ -528,8 +599,7 @@ This function can be used to set the parameter (_param_) of the target _widget_ 
 
 #### Example: 
     // Set GaugeA3's Background color to BLACK
-    mates.setWidgetParam(GaugeA3, MATES_GAUGE_A_BG_COLOR, BLACK); 
-    // Note: The ID of GaugeA3 can be copied or exported from Mates Studio
+    mates.setWidgetParam(GaugeA3, MATES_GAUGE_A_BG_COLOR, BLACK);
 
 
 ### **getWidgetParam(widget, param)**
@@ -549,7 +619,6 @@ This function can be used to query the parameter (_param_) of the target _widget
 #### Example: 
     // Query the background color of GaugeA3
     int16_t paramVal = mates.getWidgetParam(GaugeA3, MATES_GAUGE_A_BG_COLOR); 
-    // Note: The ID of GaugeA3 can be copied or exported from Mates Studio
 
 
 ### **setWidgetParam(type, index, param, value);**
@@ -686,7 +755,7 @@ This function can be used to clear the PrintArea specified by _index_.
     mates.clearPrintArea(5); // Clear PrintArea5
 
 
-### **setPrintAreaColor(index, color)**
+### **setPrintAreaColor(index, rgb565)**
 
 This function can be used to set the print color (_rgb565_) used by the PrintArea specified by _index_.
 
@@ -740,7 +809,7 @@ This function can be used to append a number of bytes (_len_) from the data in _
 
 
 #### Example: 
-    int8_t data = {0xF8, 0x7F, 0x1F};
+    int8_t data[] = {0xF8, 0x7F, 0x1F};
     mates.appendToPrintArea(7, data, 3); // Append data to PrintArea7
     
 
@@ -801,13 +870,13 @@ This function can be used to append a number of 16-bit values (_len_) from the d
 
 
 #### Example: 
-    int8_t data = {0xF8, 0x7F, 0x1F};
-    mates.appendToPrintArea(7, data, 3); // Append data to PrintArea7
+    int16_t data[] = {0xF8, 0x7F, 0x1F};
+    mates.appendToScope(7, data, 3); // Append data to Scope7
 
 
 ### **updateDotMatrix(index, format, ...)**
 
-This function can be used to append contents to the PrintArea specified by _index_ with the text formed by _format_ and the additional arguments.
+This function can be used to append contents to the DotMatrix specified by _index_ with the text formed by _format_ and the additional arguments.
 
 
 | Parameters | Type         | Description                                                    |

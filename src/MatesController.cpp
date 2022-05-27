@@ -85,8 +85,6 @@ bool MatesController::begin(int32_t baudrate, bool resetModule) {
     debugSerial->println(baudrate);
   } 
 
-  if (resetModule) pinMode(matesResetPin, OUTPUT);
-
   switch (matesSerialType) {
     case HARDWARE_SERIAL:
       hwMatesSerial->begin(baudrate);
@@ -109,6 +107,10 @@ bool MatesController::begin(int32_t baudrate, bool resetModule) {
 
   return resetModule ? reset() : sync(true);
 
+}
+
+bool MatesController::isReady() {
+  return matesReady;
 }
 
 bool MatesController::sync(bool resetToPage0, uint16_t waitPeriod) {
@@ -162,9 +164,10 @@ bool MatesController::reset(uint16_t waitPeriod) {
     debugSerial->print(matesResetPin);
     debugSerial->write("... ");
   }
-  
+
+  pinMode(matesResetPin, OUTPUT);
   digitalWrite(matesResetPin, matesResetMode);
-  delay(100);
+  delay(__MATES_RESET_DURATION__);
   digitalWrite(matesResetPin, ~matesResetMode);
 
   unsigned long startTime = 0;
@@ -265,11 +268,11 @@ bool MatesController::_setPage(uint16_t page, bool debugMsgs) {
   return res;
 }
 
-int16_t MatesController::getPage() {
+uint16_t MatesController::getPage() {
   if (debugSerial != NULL) {
     debugSerial->write("Query active page... ");
   }  
-  return _getPage();
+  return (uint16_t)_getPage();
 }
 
 int16_t MatesController::_getPage(bool force, bool debugMsgs) {
@@ -352,6 +355,10 @@ bool MatesController::setLedSpectrumValue(uint8_t index, uint8_t gaugeIndex, uin
 
 bool MatesController::setMediaSpectrumValue(uint8_t index, uint8_t gaugeIndex, uint8_t value) {
   return setWidgetValue((int16_t)((MATES_MEDIA_SPECTRUM << 8) | index), (int16_t)((gaugeIndex << 8) | value));
+}
+
+bool MatesController::setMediaColorLedValue(uint8_t index, uint8_t r, uint8_t g, uint8_t b) {
+  return setWidgetValue((int16_t)((MATES_MEDIA_COLOR_LED << 8) | index), getColor565FromRGB(r, g, b));
 }
 
 bool MatesController::setWidgetParam(int16_t widget, int16_t param, int16_t value) {
@@ -506,14 +513,10 @@ bool MatesController::setPrintAreaColor(uint16_t index, int16_t rgb565) {
 }
 
 bool MatesController::setPrintAreaColor(uint16_t index, uint8_t r, uint8_t g, uint8_t b) {
-  int16_t rgb565 = 0;
-  rgb565 |= (r & 0xF8) << 8;
-  rgb565 |= (g & 0xFC) << 3;
-  rgb565 |= (b & 0xF8) >> 3;
-  return setPrintAreaColor(index, rgb565);
+  return setPrintAreaColor(index, getColor565FromRGB(r, g, b));
 }
 
-bool MatesController::appendToPrintArea(uint16_t index, const int8_t * buf, uint16_t len) {
+bool MatesController::appendToPrintArea(uint16_t index, int8_t * buf, uint16_t len) {
   int8_t * _buf = buf;
   
   for (uint16_t _len = len; _len > __MATES_STR_LENGTH__; _len -= __MATES_STR_LENGTH__, _buf += __MATES_STR_LENGTH__) {
@@ -672,7 +675,7 @@ int16_t MatesController::getNextSwipeEvent() {
   }
 }
 
-bool MatesController::pinMode(int16_t pin, int16_t mode) {
+bool MatesController::setPinMode(int16_t pin, int16_t mode) {
   if (debugSerial != NULL) {
     debugSerial->write("Setting pin ");
     debugSerial->print(pin);
@@ -690,7 +693,7 @@ bool MatesController::pinMode(int16_t pin, int16_t mode) {
   return matesReady;
 }
 
-bool MatesController::digitalWrite(int16_t pin, int16_t value) {
+bool MatesController::setPinValue(int16_t pin, int16_t value) {
   if (debugSerial != NULL) {
     debugSerial->write("Setting pin ");
     debugSerial->print(pin);
@@ -708,7 +711,7 @@ bool MatesController::digitalWrite(int16_t pin, int16_t value) {
   return matesReady;
 }
 
-int16_t MatesController::digitalRead(int16_t pin) {
+int16_t MatesController::getPinValue(int16_t pin) {
   if (debugSerial != NULL) {
     debugSerial->write("Query value of pin ");
     debugSerial->print(pin);
@@ -780,6 +783,7 @@ void MatesController::SetError(MatesError error, bool debugMsgs) {
         break;
     }
   };
+  if (matesError != MATES_ERROR_NONE) matesReady = false;
   if (matesErrorHandler == NULL) return;
   matesErrorHandler(error);
 }
@@ -919,4 +923,12 @@ bool MatesController::_setWidgetValue(int16_t widget, float value) {
     SetError(MATES_ERROR_NOT_INITIALIZED);
   }
   return res;
+}
+
+int16_t MatesController::getColor565FromRGB(uint8_t r, uint8_t g, uint8_t b) {
+  int16_t rgb565 = 0;
+  rgb565 |= (r & 0xF8) << 8;
+  rgb565 |= (g & 0xFC) << 3;
+  rgb565 |= (b & 0xF8) >> 3;
+  return rgb565;
 }
