@@ -24,7 +24,7 @@
 #include <stdarg.h>
 
 #define __MATES_STUDIO_COMPATIBILITY_VERSION__  "1.0.9"
-#define __MATES_CONTROLLER_LIBRARY_VERSION__    "1.0.4"
+#define __MATES_CONTROLLER_LIBRARY_VERSION__    "1.0.5"
 
 #define __MATES_PRT_LENGTH__                    1000 
 #define __MATES_STR_LENGTH__                    255 
