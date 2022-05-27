@@ -125,6 +125,26 @@ This function can be used to determine if the module is in sync with the Arduino
 
 ### **sync(resetToPage0, waitPeriod)**
 
+This function can be used to setup auto resynchronization when an error occurs.
+
+| Parameters                | Type     | Description                                       |
+|:-------------------------:|:--------:| ------------------------------------------------- |
+| attempts                  | uint8_t  | Number of resync attempts to perform              |
+| waitPeriod<br/>(optional) | uint16_t | Timeout period to wait for every resync attempt (default: boot timeout) |
+
+
+**Return:** none
+
+
+#### Example No. 1: 
+    mates.autoResync(3); // Setup 3 automatic attempts to resync with default timeout
+
+#### Example No. 2: 
+    mates.autoResync(5, 10000); // Setup 5 automatic attempts to resync with 10000ms timeout
+
+
+### **sync(resetToPage0, waitPeriod)**
+
 This function can be used to establish synchronization between the BBM module and the Arduino compatible host.
 
 | Parameters                | Type     | Description                                       |

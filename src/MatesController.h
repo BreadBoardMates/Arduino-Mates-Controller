@@ -24,7 +24,7 @@
 #include <stdarg.h>
 
 #define __MATES_STUDIO_COMPATIBILITY_VERSION__  "1.0.9"
-#define __MATES_CONTROLLER_LIBRARY_VERSION__    "1.0.5"
+#define __MATES_CONTROLLER_LIBRARY_VERSION__    "1.0.6"
 
 #define __MATES_PRT_LENGTH__                    1000 
 #define __MATES_STR_LENGTH__                    255 
@@ -58,6 +58,8 @@
  *   1.0.5: May 27, 2022
  *      Added bool isReady()
  *      Added int16_t setMediaColorLedValue(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
+ *   1.0.6: May 27, 2022
+ *      Added bool autoResync(int attempts, uint16_t waitPeriod)
  */
 
 typedef void (*MatesErrorHandler) (MatesError);
@@ -111,6 +113,7 @@ class MatesController {
 
     bool begin(int32_t baudrate = 9600, bool resetModule = true);
     bool isReady();
+    bool autoResync(uint8_t attempts, uint16_t waitPeriod = 0);
     bool sync(bool resetToPage0 = false, uint16_t waitPeriod = 0);
     bool reset(uint16_t waitPeriod = 0);
     bool softReset(uint16_t waitPeriod = 0);
@@ -201,6 +204,8 @@ class MatesController {
     uint16_t matesTxDelay = 0;
     uint8_t matesResetPin = 4;
     uint8_t matesResetMode = LOW;
+    uint8_t matesResyncAttempts = 0;
+    uint16_t matesResyncTimeout = 0; // default
 
     HardwareSerial * hwMatesSerial = NULL;
 

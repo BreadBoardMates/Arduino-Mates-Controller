@@ -113,6 +113,11 @@ bool MatesController::isReady() {
   return matesReady;
 }
 
+bool MatesController::autoResync(uint8_t attempts, uint16_t waitPeriod) {
+  matesResyncAttempts = attempts;
+  matesResyncTimeout = waitPeriod;
+}
+
 bool MatesController::sync(bool resetToPage0, uint16_t waitPeriod) {
   int16_t page = -1;
   
@@ -783,7 +788,12 @@ void MatesController::SetError(MatesError error, bool debugMsgs) {
         break;
     }
   };
-  if (matesError != MATES_ERROR_NONE) matesReady = false;
+  if (matesError != MATES_ERROR_NONE) {
+    matesReady = false;
+    for (uint8_t i = 0; i < matesResyncAttempts; i++) {
+      if (sync(false, matesResyncTimeout)) break;
+    }
+  }
   if (matesErrorHandler == NULL) return;
   matesErrorHandler(error);
 }
