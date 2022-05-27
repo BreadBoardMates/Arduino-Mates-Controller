@@ -56,6 +56,7 @@
  *      Added void detachErrorHandler();
  *      Fixed print area issue when sending long strings
  *   1.0.5: May 27, 2022
+ *      Added bool isReady()
  *      Added int16_t setMediaColorLedValue(uint8_t index, uint8_t r, uint8_t g, uint8_t b)
  */
 
