@@ -113,7 +113,7 @@ class MatesController {
 
     bool begin(int32_t baudrate = 9600, bool resetModule = true);
     bool isReady();
-    bool autoResync(uint8_t attempts, uint16_t waitPeriod = 0);
+    void autoResync(uint8_t attempts, uint16_t waitPeriod = 0);
     bool sync(bool resetToPage0 = false, uint16_t waitPeriod = 0);
     bool reset(uint16_t waitPeriod = 0);
     bool softReset(uint16_t waitPeriod = 0);

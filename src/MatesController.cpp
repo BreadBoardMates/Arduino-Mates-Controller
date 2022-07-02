@@ -113,7 +113,7 @@ bool MatesController::isReady() {
   return matesReady;
 }
 
-bool MatesController::autoResync(uint8_t attempts, uint16_t waitPeriod) {
+void MatesController::autoResync(uint8_t attempts, uint16_t waitPeriod) {
   matesResyncAttempts = attempts;
   matesResyncTimeout = waitPeriod;
 }
@@ -776,13 +776,13 @@ void MatesController::SetError(MatesError error, bool debugMsgs) {
         debugSerial->write("CMD Timeout\n");
         break;
       case MATES_ERROR_NOT_INITIALIZED:
-        debugSerial->write('Not Ready\n');
+        debugSerial->write("Not Ready\n");
         break;
       case MATES_ERROR_SYNC_TIMEOUT:
         debugSerial->write("SYNC Timeout\n");
         break;
       case MATES_ERROR_SYNC_ERROR:
-        debugSerial->write('SYNC Error\n');
+        debugSerial->write("SYNC Error\n");
         break;        
       default:
         break;
