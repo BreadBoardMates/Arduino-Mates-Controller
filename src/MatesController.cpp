@@ -571,7 +571,7 @@ bool MatesController::appendToPrintArea(uint16_t index, String str) {
   return appendToPrintArea(index, (int8_t *) (str.c_str()), str.length());
 }
 
-bool MatesController::appendToScope(uint16_t index, const int16_t * buf, uint16_t len) {
+bool MatesController::appendToScope(uint8_t index, const int16_t * buf, uint16_t len) {
   if (debugSerial != NULL) {
     debugSerial->write("Append to Scope");
     debugSerial->print(index);
@@ -581,7 +581,8 @@ bool MatesController::appendToScope(uint16_t index, const int16_t * buf, uint16_
   bool res = false;
   if (matesReady) {
     WriteCommand(MATES_CMD_APPEND_SCOPE_DATA);
-    WriteWord(index);
+    WriteByte(0);
+    WriteByte(index);
     WriteWord(len);
     WriteData(buf, len);
     res = WaitForACK(__MATES_CMD_LTIMEOUT__);

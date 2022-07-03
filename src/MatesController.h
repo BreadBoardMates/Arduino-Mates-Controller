@@ -165,7 +165,7 @@ class MatesController {
     bool appendToPrintArea(uint16_t index, String str);
 
     // Scope functions
-    bool appendToScope(uint16_t index, const int16_t * buf, uint16_t len);
+    bool appendToScope(uint8_t index, const int16_t * buf, uint16_t len);
 
     // Dot Matrix functions
     bool updateDotMatrix(uint16_t index, const char * format, ...);
