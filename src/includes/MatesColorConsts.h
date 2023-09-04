@@ -111,7 +111,10 @@ typedef enum MatesColor {
     PAPAYAWHIP = 0xFF7A,
     PEACHPUFF = 0xFED7,
     PERU = 0xCC27,
+#ifndef PINK
     PINK = 0xFE19,
+#endif
+    ROSE = 0xFE19,
     PLUM = 0xDD1B,
     POWDERBLUE = 0xB71C,
     PURPLE = 0x8010,
